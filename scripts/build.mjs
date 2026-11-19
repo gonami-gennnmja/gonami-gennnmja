@@ -370,7 +370,7 @@ rmSync("game", { recursive: true, force: true });
 mkdirSync("game");
 for (const [f, md] of Object.entries(game.pages)) writeFileSync(`game/${f}`, md);
 
-const readme = `${still("hi", "header.svg", "Hi there! I make small apps you'll want to open every day")}
+const readme = `${still("hi", "header.svg", "Press start: apps for the little moments of your day")}
 ${still("about", "idcard.svg", "ID card")}
 <p align="center"><a href="${LINKEDIN}">${img("btn-linkedin.svg", "LinkedIn", "190")}</a></p>
 

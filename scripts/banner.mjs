@@ -31,15 +31,15 @@ function header() {
   b += float(at(54, 154, sprite(BUG, { o: "#000", p: C.pink }, 0, 0, 3)), 3, 0.7, 0.3);
   // the welcome window
   b += win(520, 140, "WELCOME.TXT", { x: 140, y: 46 });
-  const title = "HI THERE!", tu = 9, tx = 140 + (514 - textWidth(title) * tu) / 2;
+  const title = "PRESS START", tu = 9, tx = 140 + (514 - textWidth(title) * tu) / 2;
   [...title].forEach((ch, i) => {
     const x = tx / tu + i * 4;
     b += float(text(ch, x + 0.34, 98 / tu + 0.34, tu, C.pink).svg + text(ch, x, 98 / tu, tu, "#000").svg, 6, 1.8, i * 0.12);
   });
-  const sub = "I MAKE SMALL APPS YOU'LL WANT TO OPEN EVERY DAY";
+  const sub = "APPS FOR THE LITTLE MOMENTS OF YOUR DAY";
   b += text(sub, (140 + (514 - textWidth(sub) * 2) / 2) / 2, 156 / 2, 2, C.soft).svg;
   [[100, 46, 0], [690, 186, 0.7], [600, 36, 1.3]].forEach(([x, y, d], i) => (b += twinkle(at(x, y, sprite(i % 2 ? SPARK : STAR, { y: i === 1 ? C.pink : "#000" }, 0, 0, 3)), 2, d)));
-  return svgDoc(W, H, b, "Hi there! I make small apps you'll want to open every day");
+  return svgDoc(W, H, b, "Press start: apps for the little moments of your day");
 }
 
 function footer() {
