@@ -45,7 +45,7 @@ const FORTUNES = [
   "YOU ARE ONE CLICK FROM A GOOD IDEA.",
 ];
 const ITEMS = ["RUBBER DUCK", "STRAWBERRY MILK", "CARDBOARD BOX", "YARN BALL", "WARM SOCKS", "STICKY NOTES", "SUNFLOWER", "BUBBLE TEA", "PIXEL HEART", "FISH CRACKERS", "HOODIE", "HEADPHONES", "TANGERINE", "PLUSH CAT", "GREEN TEA", "NEW NOTEBOOK"];
-const COLORS = [["PINK", C.pink], ["MINT", C.mintD], ["LILAC", C.lilac], ["SKY", C.blue], ["LEMON", C.gold], ["PEACH", "#FFB38A"]];
+const COLORS = [["PINK", C.pink], ["LILAC", C.lilac], ["BLACK", "#000"], ["SILVER", C.mid], ["SNOW", "#fff"], ["CHARCOAL", C.dark]];
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
 // a small, steady hash so the same day always gets the same fortune
@@ -58,22 +58,22 @@ export function fortune(day) { // day: Date whose UTC fields are the local date
   const key = day.toISOString().slice(0, 10), h = hash(key);
   const line = FORTUNES[h % FORTUNES.length], item = ITEMS[(h >>> 7) % ITEMS.length], [cname, color] = COLORS[(h >>> 13) % COLORS.length];
   const number = ((h >>> 17) % 99) + 1;
-  const H = 250;
+  const H = 272;
   let b = frame(H, "TODAY'S FORTUNE");
   // iyyko holding up the cookie
-  b += float(at(70, 70, sprite(catSprite("happy"), CATC, 0, 0, 7)), 5, 1.4);
-  b += float(at(142, 150, sprite(COOKIE, { c: "#C98A4B", C: "#F2C17D", s: C.white }, 0, 0, 5)), 5, 1.4, 0.2);
-  [[60, 60, 0], [170, 70, 0.7], [190, 196, 1.3]].forEach(([x, y, d]) => (b += twinkle(at(x, y, sprite(SPARK, { y: C.gold }, 0, 0, 4)), 1.8, d)));
+  b += float(at(70, 76, sprite(catSprite("happy"), CATC, 0, 0, 7)), 5, 1.4);
+  b += float(at(142, 156, sprite(COOKIE, { c: "#000", C: C.light, s: "#fff" }, 0, 0, 5)), 5, 1.4, 0.2);
+  [[60, 60, 0], [170, 70, 0.7], [190, 196, 1.3]].forEach(([x, y, d]) => (b += twinkle(at(x, y, sprite(SPARK, { y: d > 1 ? C.pink : "#000" }, 0, 0, 4)), 1.8, d)));
   // the paper slip
-  const px = 240, py = 52, pw = 520, ph = 170;
-  b += `<rect x="${px + 6}" y="${py + 6}" width="${pw}" height="${ph}" fill="${C.frame}"/><rect x="${px}" y="${py}" width="${pw}" height="${ph}" fill="${C.white}"/>`;
+  const px = 240, py = 56, pw = 520, ph = 190;
+  b += `<rect x="${px + 5}" y="${py + 5}" width="${pw}" height="${ph}" fill="#000"/><rect x="${px}" y="${py}" width="${pw}" height="${ph}" fill="#000"/><rect x="${px + 3}" y="${py + 3}" width="${pw - 6}" height="${ph - 6}" fill="#fff"/>`;
   const date = `${MONTHS[day.getUTCMonth()]} ${day.getUTCDate()} ${day.getUTCFullYear()}`;
-  b += text(date, (px + pw - 20 - textWidth(date) * 2) / 2, (py + 14) / 2, 2, C.soft).svg;
-  wrap(line, 30).slice(0, 2).forEach((l, i) => (b += text(l, (px + 20) / 4, (py + 34 + i * 30) / 4, 4, C.ink).svg));
+  b += text(date, (px + pw - 20 - textWidth(date) * 2) / 2, (py + 14) / 2, 2, C.pink).svg;
+  wrap(line, 30).slice(0, 2).forEach((l, i) => (b += text(l, (px + 20) / 4, (py + 34 + i * 30) / 4, 4, "#000").svg));
   const ly = py + 108;
   b += text(`LUCKY ITEM:   ${item}`, (px + 20) / 3, ly / 3, 3, C.soft).svg;
   b += text(`LUCKY NUMBER: ${number}`, (px + 20) / 3, (ly + 22) / 3, 3, C.soft).svg;
   b += text(`LUCKY COLOR:  ${cname}`, (px + 20) / 3, (ly + 44) / 3, 3, C.soft).svg;
-  b += `<rect x="${px + 20 + (textWidth(`LUCKY COLOR:  ${cname}`) + 3) * 3}" y="${ly + 42}" width="18" height="18" fill="${color}"/>`;
+  b += `<rect x="${px + 20 + (textWidth(`LUCKY COLOR:  ${cname}`) + 3) * 3}" y="${ly + 42}" width="18" height="18" fill="#000"/><rect x="${px + 23 + (textWidth(`LUCKY COLOR:  ${cname}`) + 3) * 3}" y="${ly + 45}" width="12" height="12" fill="${color}"/>`;
   return svgDoc(W, H, b, `Today's fortune from iyyko: ${line.toLowerCase()} Lucky item: ${item.toLowerCase()}, number ${number}, color ${cname.toLowerCase()}`);
 }

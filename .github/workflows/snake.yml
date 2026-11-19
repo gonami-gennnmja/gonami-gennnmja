@@ -17,7 +17,7 @@ jobs:
         with:
           github_user_name: ${{ github.repository_owner }}
           outputs: |
-            assets/snake.svg?color_snake=#FF8FAB&color_dots=#F3EEFF,#FFD9E4,#FFB3C6,#E59BD8,#B49CFF
+            assets/snake.svg?color_snake=#FF8FAB&color_dots=#EEEEEE,#BBBBBB,#888888,#555555,#000000
       - name: commit
         run: |
           git config user.name "github-actions[bot]"

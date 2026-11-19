@@ -1,9 +1,8 @@
 // Tic-tac-toe you play just by clicking, with no issues and no server.
 // Every board a game can reach is written into the README ahead of time. Each empty square
 // links to the board that comes next (your X plus iyyko's answer), so a click jumps there.
-// Boards sit far apart, so after a jump you only see the one you are on.
 import { svgDoc } from "./pixel.mjs";
-import { C, W, frame, float, blink, at, sprite, text, textWidth, FACES, CATC } from "./art.mjs";
+import { C, W, SHADOW, frame, macButton, float, blink, at, sprite, text, textWidth, FACES, CATC } from "./art.mjs";
 
 const LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
 function winner(b) {
@@ -43,8 +42,8 @@ export function boards() {
 const S = 90;
 function cell(kind) { // e: empty, x, o, and xw / ow on the winning line
   const hot = kind.endsWith("w");
-  let b = `<rect width="${S}" height="${S}" fill="${C.bg}"/><rect x="3" y="3" width="${S - 6}" height="${S - 6}" fill="${hot ? "#FFF1B8" : C.white}" stroke="${C.frame}" stroke-width="6"/>`;
-  if (kind === "e") b += `<rect x="${S / 2 - 4}" y="${S / 2 - 4}" width="8" height="8" fill="${C.lilacL}"/>`;
+  let b = `<rect width="${S}" height="${S}" fill="#000"/><rect x="3" y="3" width="${S - 6}" height="${S - 6}" fill="${hot ? C.pinkL : "#fff"}"/>`;
+  if (kind === "e") b += `<rect x="${S / 2 - 3}" y="${S / 2 - 3}" width="6" height="6" fill="${C.mid}"/>`;
   if (kind[0] === "x") b += float(at(20, 20, sprite(["x...x", ".x.x.", "..x..", ".x.x.", "x...x"], { x: C.pink }, 0, 0, 10)), hot ? 4 : 0, 0.8);
   if (kind[0] === "o") b += float(at(15, 18, sprite(FACES.happy, CATC, 0, 0, 5)), hot ? 4 : 0, 0.8);
   return svgDoc(S, S, b, { e: "empty square", x: "X", o: "iyyko", xw: "X", ow: "iyyko" }[kind]);
@@ -57,21 +56,16 @@ const STATUS = {
   draw: ["IT'S A DRAW!", "A WORTHY OPPONENT. ONE MORE GAME?"],
 };
 function status(kind) {
-  const H = 130, [big, small] = STATUS[kind];
-  let b = frame(H, "TIC-TAC-TOE VS IYYKO");
-  const t = text(big, Math.round((W - textWidth(big) * 5) / 2 / 5), 52 / 5, 5, kind === "lose" ? C.ink : C.pink).svg;
+  const H = 136, [big, small] = STATUS[kind], ww = W - SHADOW;
+  let b = frame(H, "TIC-TAC-TOE.APP");
+  const t = text(big, Math.round((ww - textWidth(big) * 5) / 2 / 5), 56 / 5, 5, kind === "win" ? C.pink : "#000").svg;
   b += kind === "start" || kind === "turn" ? t : blink(t, 1.2);
-  b += text(small, Math.round((W - textWidth(small) * 2) / 2 / 2), 94 / 2, 2, C.soft).svg;
+  b += text(small, Math.round((ww - textWidth(small) * 2) / 2 / 2), 98 / 2, 2, C.soft).svg;
   return svgDoc(W, H, b, `${big} ${small}`);
 }
-function button(label, bg) {
-  const w = 200, h = 56;
-  let b = `<rect width="${w}" height="${h}" fill="${C.bg}"/><rect x="4" y="10" width="${w - 8}" height="${h - 14}" fill="${C.frameD}"/><rect x="4" y="4" width="${w - 8}" height="${h - 14}" fill="${bg}"/>`;
-  b += text(label, Math.round((w - textWidth(label) * 4) / 2 / 4), 4, 4, C.white).svg;
-  return svgDoc(w, h, b, label);
-}
+const button = (label, isDefault) => svgDoc(200, 56, macButton(200, 56, label, isDefault), label);
 export function pictures() {
-  const f = { "ttt/again.svg": button("PLAY AGAIN", C.pink), "ttt/restart.svg": button("START OVER", C.lilac), "ttt/home.svg": button("MY PROFILE", C.mintD) };
+  const f = { "ttt/again.svg": button("PLAY AGAIN", true), "ttt/restart.svg": button("START OVER", false), "ttt/home.svg": button("MY PROFILE", false) };
   for (const k of ["e", "x", "o", "xw", "ow"]) f[`ttt/${k}.svg`] = cell(k);
   for (const k of Object.keys(STATUS)) f[`ttt/${k}.svg`] = status(k);
   return f;
