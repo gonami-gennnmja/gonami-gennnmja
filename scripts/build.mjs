@@ -1,12 +1,12 @@
 // Draws every picture on the profile and writes README.md.
 // Pictures that change (island, pet, trophies) come from the contribution calendar; the README links each one with a content hash so GitHub shows the new one.
-import { readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { svgDoc } from "./pixel.mjs";
 import {
-  C, W, SHADOW, DEFS, win, frame, float, blink, twinkle, at, sprite, text, textWidth,
-  catSprite, HEART, STAR, SPARK, FISH, YARN, CLOUD, SUN, ZZZ,
+  C, W, SHADOW, DEFS, win, frame, macButton, float, blink, twinkle, at, sprite, text, textWidth,
+  CATC, catSprite, HEART, STAR, SPARK, FISH, YARN, CLOUD, SUN, ZZZ,
 } from "./art.mjs";
 import { fortune } from "./fortune.mjs";
 import * as ttt from "./ttt.mjs";
@@ -21,6 +21,7 @@ const localNow = () =>
   : new Date(Date.now() + OFFSET * 3600e3);
 const centerText = (s, y, u, color, w = W) => text(s, Math.round((w - textWidth(s) * u) / 2 / u), y, u, color).svg;
 
+const LINKEDIN = "https://www.linkedin.com/in/gain-nam-557a61430/";
 const APPS = [
   { id: "isleday", name: "Isleday", desc: "Small habits grow a pixel island", url: "https://apps.apple.com/app/isleday/id6816646663", chips: ["IOS"] },
   { id: "tuttiday", name: "tuttiday", desc: "Band rehearsals, set in one vote", url: "https://tuttiday.com", chips: ["IOS", "ANDROID", "WEB"] },
@@ -41,6 +42,15 @@ async function calendar() {
   if (!j.data) throw new Error(JSON.stringify(j));
   return j.data.user.contributionsCollection.contributionCalendar.weeks.flatMap((w) => w.contributionDays).map((d) => ({ date: d.date, n: d.contributionCount }));
 }
+async function publicRepos() {
+  const token = process.env.GITHUB_TOKEN || execSync("gh auth token").toString().trim();
+  const r = await fetch("https://api.github.com/graphql", {
+    method: "POST",
+    headers: { Authorization: `bearer ${token}`, "Content-Type": "application/json", "User-Agent": "profile-builder" },
+    body: JSON.stringify({ query: `query($l:String!){user(login:$l){repositories(privacy:PUBLIC,ownerAffiliations:OWNER){totalCount}}}`, variables: { l: USER } }),
+  });
+  return (await r.json()).data?.user.repositories.totalCount ?? 0;
+}
 function stats(days) {
   const total = days.reduce((s, d) => s + d.n, 0);
   let longest = 0, run = 0;
@@ -52,28 +62,51 @@ function stats(days) {
   return { total, longest, current, active, week: days.slice(-7), today: days.at(-1)?.n ?? 0, yesterday: days.at(-2)?.n ?? 0 };
 }
 
-// ---------- about me: a text editor window that types itself ----------
-function terminal() {
-  const H = 214, u = 3;
-  let b = frame(H, "ME.JS");
-  const K = C.pink, P = C.ink, S = C.dark, N = C.lilac;
-  const lines = [
-    [["CONST ", K], ["ME", N], [" = {", P]],
-    [["  SHIPPED: [", P], ['"ISLEDAY", "TUTTIDAY", "IYYKO"', S], ["],", P]],
-    [["  COOKING: [", P], ['"OURHOUR"', S], ["],", P]],
-    [["  LOVES:   [", P], ['"PIXEL ART", "CUTE UIS", "APPS THAT SHIP"', S], ["],", P]],
-    [["};", P]],
-  ];
-  b += `<rect x="3" y="36" width="44" height="${H - SHADOW - 39}" fill="${C.light}"/><rect x="47" y="36" width="2" height="${H - SHADOW - 39}" fill="#000"/>`;
-  lines.forEach((segs, i) => {
-    const y = 20 + i * 7;
-    b += text(String(i + 1), 6, y, u, C.soft).svg;
-    let x = 20, out = "";
-    for (const [s, c] of segs) { out += text(s, x, y, u, c).svg; x += s.length * 4; }
-    b += `<g opacity="0"><animate attributeName="opacity" from="0" to="1" begin="${0.4 + i * 0.5}s" dur="0.01s" fill="freeze"/>${out}</g>`;
+// ---------- ID card: who I am, a few numbers, the tools I use ----------
+const ME = {
+  role: "SOLO DEV · DESIGNER",
+  lines: ["SHIPPED: ISLEDAY, TUTTIDAY, IYYKO", "COOKING: OURHOUR"],
+  tools: ["MACOS", "WINDOWS", "XCODE", "INTELLIJ IDEA", "VS CODE", "CLAUDE CODE", "FIGMA", "DOCKER", "NOTION"],
+  status: "NOW: SHIPPING OURHOUR",
+};
+function idCard(s, repos) {
+  const ww = W - SHADOW;
+  // tools, as chips that wrap; laid out first so the card can fit them
+  let chips = "", cx = 24, cy = 222;
+  for (const t of ME.tools) {
+    const w = textWidth(t) * 2 + 20;
+    if (cx + w > ww - 20) { cx = 24; cy += 34; }
+    chips += `<rect x="${cx}" y="${cy}" width="${w}" height="26" fill="#000"/><rect x="${cx + 2}" y="${cy + 2}" width="${w - 4}" height="22" fill="#fff"/>`;
+    chips += text(t, (cx + 10) / 2, (cy + 8) / 2, 2, "#000").svg;
+    cx += w + 8;
+  }
+  const H = cy + 26 + 22 + 40 + SHADOW;
+  let b = frame(H, "ID CARD");
+  // photo: iyyko stands in for me
+  b += `<rect x="24" y="52" width="132" height="132" fill="#000"/><rect x="27" y="55" width="126" height="126" fill="${C.light}"/>`;
+  b += float(at(48, 66, sprite(catSprite("happy"), CATC, 0, 0, 7)), 3, 2);
+  b += text(USER.toUpperCase(), 176 / 5, 58 / 5, 5, "#000").svg;
+  b += text(ME.role, 176 / 3, 96 / 3, 3, C.pink).svg;
+  ME.lines.forEach((l, i) => (b += text(l, 176 / 2, (128 + i * 18) / 2, 2, C.soft).svg));
+  // numbers
+  const stats = [["STREAK", `${s.current} DAYS`], ["COMMITS", `${s.total}`], ["REPOS", `${repos}`], ["APPS", "3 LIVE"]];
+  stats.forEach(([label, value], i) => {
+    const x = 520 + (i % 2) * 134, y = 52 + Math.floor(i / 2) * 68;
+    b += `<rect x="${x}" y="${y}" width="126" height="60" fill="#000"/><rect x="${x + 3}" y="${y + 3}" width="120" height="54" fill="${i === 0 ? C.pinkL : "#fff"}"/>`;
+    b += text(label, (x + 10) / 2, (y + 10) / 2, 2, C.soft).svg;
+    const vu = textWidth(value) * 4 > 104 ? 3 : 4;
+    b += text(value, (x + 10) / vu, (y + 28) / vu, vu, "#000").svg;
   });
-  b += blink(`<rect x="${(20 + 3 * 4) * u}" y="${(20 + 4 * 7) * u}" width="${3 * u}" height="${5 * u}" fill="#000"/>`, 1);
-  return svgDoc(W, H, b, "About me: shipped Isleday, tuttiday and iyyko; cooking Ourhour; loves pixel art, cute UIs and apps that ship");
+  // tools, as chips that wrap
+  b += text("TOOLS", 24 / 2, 204 / 2, 2, C.soft).svg + chips;
+  // status strip
+  const sy = H - SHADOW - 40;
+  b += `<rect x="3" y="${sy}" width="${ww - 6}" height="3" fill="#000"/><rect x="3" y="${sy + 3}" width="${ww - 6}" height="34" fill="${C.light}"/>`;
+  b += text(ME.status, 24 / 2, (sy + 14) / 2, 2, "#000").svg;
+  b += blink(`<rect x="${24 + textWidth(ME.status) * 2 + 6}" y="${sy + 12}" width="6" height="12" fill="#000"/>`, 1);
+  const upd = "UPDATED EVERY HOUR";
+  b += text(upd, (ww - 24 - textWidth(upd) * 2) / 2, (sy + 14) / 2, 2, C.soft).svg;
+  return svgDoc(W, H, b, `ID card: ${USER}, ${ME.role.toLowerCase()}. Streak ${s.current} days, ${s.total} commits, ${repos} public repos. Tools: ${ME.tools.join(", ").toLowerCase()}`);
 }
 
 // ---------- app cards: one small window per app ----------
@@ -186,15 +219,25 @@ function island(s) {
 
 // ---------- iyyko, the pet: every commit feeds it ----------
 const clamp = (v) => Math.max(0, Math.min(100, Math.round(v)));
-function petStats(s, hour) {
+// visitors' feed / play / pat from the last 12 hours top the bars up
+const VISIT = { feed: "hunger", play: "fun", pat: "love" };
+function petStats(s, hour, visits = []) {
   // food is today's commits; without any, iyyko gets hungrier as the day goes on
-  const hunger = s.today ? 55 + s.today * 9 : (s.yesterday ? 70 : 45) - hour * 2;
-  const fun = (s.week.filter((d) => d.n).length / 7) * 100; // busy days this week
-  const love = 25 + s.current * 12; // the streak
-  return { hunger: clamp(hunger), fun: clamp(fun), love: clamp(love) };
+  const p = {
+    hunger: s.today ? 55 + s.today * 9 : (s.yesterday ? 70 : 45) - hour * 2,
+    fun: (s.week.filter((d) => d.n).length / 7) * 100, // busy days this week
+    love: 25 + s.current * 12, // the streak
+  };
+  for (const v of visits) if (Date.now() - Date.parse(v.at) < 12 * 3600e3) p[VISIT[v.action]] += 15;
+  return { hunger: clamp(p.hunger), fun: clamp(p.fun), love: clamp(p.love) };
 }
-function pet(s) {
-  const H = 336, hour = localNow().getUTCHours(), p = petStats(s, hour);
+const ago = (iso) => {
+  const m = (Date.now() - Date.parse(iso)) / 60e3;
+  return m < 2 ? "JUST NOW" : m < 60 ? `${Math.round(m)}M AGO` : m < 1440 ? `${Math.round(m / 60)}H AGO` : `${Math.round(m / 1440)}D AGO`;
+};
+function pet(s, saved) {
+  const H = 336, hour = localNow().getUTCHours(), p = petStats(s, hour, saved.log);
+  const last = saved.log[0], recent = last && Date.now() - Date.parse(last.at) < 90 * 60e3;
   let b = frame(H, "IYYKO PET");
   // the egg-shaped toy, drawn row by row with a black outline
   const ex = 150, ey = 186, rx = 104, ry = 128, g = 6, rowsAt = [];
@@ -212,14 +255,16 @@ function pet(s) {
   for (let i = 0; i < 6; i++) b += `<rect x="${102 + i * 18}" y="86" width="9" height="6" fill="#000"/>`;
   // what iyyko is up to
   const low = Math.min(p.hunger, p.fun, p.love);
-  const asleep = hour < 7;
+  const asleep = !recent && hour < 7;
   const fed = !asleep && s.today > 0;
-  const face = asleep ? "closed" : fed && p.hunger >= 70 ? "happy" : low < 15 ? "grumpy" : low < 40 ? "sad" : low >= 70 ? "happy" : "open";
-  const mood = asleep ? "SLEEPING" : fed && p.hunger >= 90 ? "SO FULL!" : fed ? "YUMMY!" : low < 15 ? "GRUMPY" : low < 40 ? (p.hunger === low ? "HUNGRY" : p.fun === low ? "BORED" : "LONELY") : low >= 70 ? "HAPPY" : "OKAY";
+  const face = asleep ? "closed" : recent || (fed && p.hunger >= 70) ? "happy" : low < 15 ? "grumpy" : low < 40 ? "sad" : low >= 70 ? "happy" : "open";
+  const mood = asleep ? "SLEEPING" : recent ? { feed: "YUMMY!", play: "SO FUN!", pat: "PURR PURR" }[last.action] : fed && p.hunger >= 90 ? "SO FULL!" : fed ? "YUMMY!" : low < 15 ? "GRUMPY" : low < 40 ? (p.hunger === low ? "HUNGRY" : p.fun === low ? "BORED" : "LONELY") : low >= 70 ? "HAPPY" : "OKAY";
   const lcd = { o: "#000", w: C.light, k: "#000", h: C.mid };
   b += float(at(104, 138, sprite(catSprite(face), lcd, 0, 0, 5)), asleep ? 0 : 4, 1.2);
   if (asleep) [0, 1, 2].forEach((k) => (b += `<g opacity="0"><animate attributeName="opacity" values="0;1;0" dur="3s" begin="${k}s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="translate" values="0 0;8 -16" dur="3s" begin="${k}s" repeatCount="indefinite"/>${at(176, 132, sprite(ZZZ, { z: "#000" }, 0, 0, 3))}</g>`));
-  else if (fed) b += float(at(172, 198, sprite(FISH, { f: "#000", k: C.light }, 0, 0, 3)), 3, 0.5);
+  else if (recent && last.action === "play") b += `<g><animateTransform attributeName="transform" type="translate" values="0 0;0 -18;0 0" dur="0.7s" repeatCount="indefinite"/>${at(178, 194, sprite(YARN, { y: "#000" }, 0, 0, 3))}</g>`;
+  else if (recent && last.action === "pat") b += twinkle(at(170, 130, sprite(HEART, { p: C.pink }, 0, 0, 3)), 1.2, 0) + twinkle(at(94, 134, sprite(HEART, { p: C.pink }, 0, 0, 2)), 1.2, 0.6);
+  else if (fed || recent) b += float(at(172, 198, sprite(FISH, { f: "#000", k: C.light }, 0, 0, 3)), 3, 0.5);
   else if (p.love >= 70) b += twinkle(at(170, 130, sprite(HEART, { p: "#000" }, 0, 0, 3)), 1.2, 0) + twinkle(at(94, 134, sprite(HEART, { p: "#000" }, 0, 0, 2)), 1.2, 0.6);
   // stats
   const tx = 300;
@@ -235,7 +280,9 @@ function pet(s) {
     for (let k = 0; k < on; k++) b += `<rect x="${tx + 150 + k * 15}" y="${y}" width="12" height="18" fill="${color}"/>`;
   });
   b += text(`TODAY: ${s.today} ${s.today === 1 ? "COMMIT" : "COMMITS"} = ${s.today} ${s.today === 1 ? "FISH" : "FISHES"}`, tx / 2, 278 / 2, 2, C.soft).svg;
-  b += text("EVERY COMMIT FEEDS IYYKO. STREAKS MAKE IT LOVE YOU.", tx / 2, 298 / 2, 2, C.soft).svg;
+  const said = { feed: "FED", play: "PLAYED WITH", pat: "PETTED" };
+  const who = last ? `LAST: ${last.login.length > 16 ? last.login.slice(0, 15) + ".." : last.login} ${said[last.action]} IYYKO ${ago(last.at)}` : "NO VISITORS YET. PRESS A BUTTON BELOW!";
+  b += text(who, tx / 2, 298 / 2, 2, last ? "#000" : C.pink).svg;
   return svgDoc(W, H, b, `iyyko the pet cat is feeling ${mood.toLowerCase()}: hunger ${p.hunger}, fun ${p.fun}, love ${p.love}`);
 }
 
@@ -288,10 +335,16 @@ function trophies(s) {
 // ---------- write everything ----------
 const days = await calendar();
 const s = stats(days);
+const repos = await publicRepos();
+const petLog = existsSync("data/pet.json") ? JSON.parse(readFileSync("data/pet.json", "utf8")) : { log: [], count: 0 };
 const files = {
-  "terminal.svg": terminal(),
+  "idcard.svg": idCard(s, repos),
   "island.svg": island(s),
-  "pet.svg": pet(s),
+  "pet.svg": pet(s, petLog),
+  "btn-feed.svg": svgDoc(190, 56, macButton(190, 56, "FEED", true), "Feed iyyko"),
+  "btn-play.svg": svgDoc(190, 56, macButton(190, 56, "PLAY"), "Play with iyyko"),
+  "btn-pat.svg": svgDoc(190, 56, macButton(190, 56, "PET"), "Pet iyyko"),
+  "btn-linkedin.svg": svgDoc(190, 56, macButton(190, 56, "LINKEDIN"), "LinkedIn"),
   "arcade.svg": arcade(),
   "trophies.svg": trophies(s),
   "fortune.svg": fortune(localNow()),
@@ -310,6 +363,7 @@ for (const f of ["header.svg", "footer.svg", "snake.svg"]) {
 }
 const img = (f, alt, width = "100%", up = "") => `<img src="${up}assets/${f}${v[f] ? `?v=${v[f]}` : ""}" width="${width}" alt="${alt}"/>`;
 // GitHub turns a bare picture into a link to the image file; pointing it at its own spot keeps a click from going anywhere
+const issue = (title) => `https://github.com/${REPO}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent("Just press **Create** — a bot does the rest and closes this issue. 🐱")}`;
 const still = (id, f, alt, width) => `<a id="${id}" href="#${id}">${img(f, alt, width)}</a>`;
 const game = ttt.markup(img, USER);
 rmSync("game", { recursive: true, force: true });
@@ -317,7 +371,8 @@ mkdirSync("game");
 for (const [f, md] of Object.entries(game.pages)) writeFileSync(`game/${f}`, md);
 
 const readme = `${still("hi", "header.svg", "Hi there! I make small apps you'll want to open every day")}
-${still("about", "terminal.svg", "About me")}
+${still("about", "idcard.svg", "ID card")}
+<p align="center"><a href="${LINKEDIN}">${img("btn-linkedin.svg", "LinkedIn", "190")}</a></p>
 
 <p align="center">
 ${APPS.map((a) => (a.url ? `<a href="${a.url}">${img(`app-${a.id}.svg`, a.name, "24%")}</a>` : still(a.id, `app-${a.id}.svg`, a.name, "24%"))).join("\n")}
@@ -325,7 +380,12 @@ ${APPS.map((a) => (a.url ? `<a href="${a.url}">${img(`app-${a.id}.svg`, a.name, 
 
 ${still("island", "island.svg", "My island")}
 
-${still("pet", "pet.svg", "iyyko the pet, fed by my commits")}
+${still("pet", "pet.svg", "iyyko the pet, fed by my commits and by you")}
+<p align="center">
+<a href="${issue("pet: feed 🐟")}">${img("btn-feed.svg", "Feed iyyko", "190")}</a>
+<a href="${issue("pet: play 🧶")}">${img("btn-play.svg", "Play with iyyko", "190")}</a>
+<a href="${issue("pet: pat ✋")}">${img("btn-pat.svg", "Pet iyyko", "190")}</a>
+</p>
 
 ${still("fortune", "fortune.svg", "Today's fortune from iyyko")}
 
@@ -340,4 +400,4 @@ ${still("snake", "snake.svg", "A snake eating my contribution graph")}
 ${still("bye", "footer.svg", "Thanks for stopping by!")}
 `;
 writeFileSync("README.md", readme);
-console.log(`week ${s.week.map((d) => d.n).join(",")} · today ${s.today} · total ${s.total} · streak ${s.current}/${s.longest} · ttt boards ${game.count} · pet ${JSON.stringify(petStats(s, localNow().getUTCHours()))}`);
+console.log(`week ${s.week.map((d) => d.n).join(",")} · today ${s.today} · total ${s.total} · streak ${s.current}/${s.longest} · ttt boards ${game.count} · pet ${JSON.stringify(petStats(s, localNow().getUTCHours(), petLog.log))} · visits ${petLog.count}`);
