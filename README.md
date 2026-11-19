@@ -8,9 +8,9 @@
 <a id="ourhour" href="#ourhour"><img src="assets/app-ourhour.svg?v=b71b48b4" width="24%" alt="Ourhour"/></a>
 </p>
 
-<a id="island" href="#island"><img src="assets/island.svg?v=232bc4a4" width="100%" alt="My island"/></a>
+<a id="island" href="#island"><img src="assets/island.svg?v=6c5063b5" width="100%" alt="My island"/></a>
 
-<a id="pet" href="#pet"><img src="assets/pet.svg?v=e1043543" width="100%" alt="iyyko the pet, fed by my commits"/></a>
+<a id="pet" href="#pet"><img src="assets/pet.svg?v=d9f338f1" width="100%" alt="iyyko the pet, fed by my commits"/></a>
 
 <a id="fortune" href="#fortune"><img src="assets/fortune.svg?v=d5e255d9" width="100%" alt="Today's fortune from iyyko"/></a>
 
@@ -24,7 +24,7 @@
 
 <a href="https://www.iyyko.com/play"><img src="assets/arcade.svg?v=37891207" width="100%" alt="Arcade: play games on iyyko.com"/></a>
 
-<a id="trophies" href="#trophies"><img src="assets/trophies.svg?v=5fe3d9b5" width="100%" alt="Trophies"/></a>
+<a id="trophies" href="#trophies"><img src="assets/trophies.svg?v=1b32712c" width="100%" alt="Trophies"/></a>
 
 <a id="snake" href="#snake"><img src="assets/snake.svg" width="100%" alt="A snake eating my contribution graph"/></a>
 
