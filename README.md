@@ -1,22 +1,22 @@
-<a id="hi" href="#hi"><img src="assets/header.svg?v=9ea46f25" width="100%" alt="Press start: apps for the little moments of your day"/></a>
-<a id="about" href="#about"><img src="assets/idcard.svg?v=957abd32" width="100%" alt="ID card"/></a>
-<p align="center"><a href="https://www.linkedin.com/in/gain-nam-557a61430/"><img src="assets/btn-linkedin.svg?v=94423ad5" width="190" alt="LinkedIn"/></a></p>
+<a id="hi" href="#hi"><img src="assets/header.svg?v=76334ba8" width="100%" alt="Press start: apps for the little moments of your day"/></a>
+<a id="about" href="#about"><img src="assets/idcard.svg?v=2c71b13c" width="100%" alt="ID card"/></a>
+<p align="center"><a href="https://gonami-gennnmja.github.io"><img src="assets/btn-website.svg?v=d2778e65" width="190" alt="Website"/></a> <a href="https://www.linkedin.com/in/gain-nam-557a61430/"><img src="assets/btn-linkedin.svg?v=94423ad5" width="190" alt="LinkedIn"/></a></p>
 
 <p align="center">
-<a href="https://apps.apple.com/app/isleday/id6816646663"><img src="assets/app-isleday.svg?v=51830bb1" width="24%" alt="Isleday"/></a>
+<a href="https://isleday.app"><img src="assets/app-isleday.svg?v=51830bb1" width="24%" alt="Isleday"/></a>
 <a href="https://tuttiday.com"><img src="assets/app-tuttiday.svg?v=9e3bbd9e" width="24%" alt="tuttiday"/></a>
 <a href="https://www.iyyko.com"><img src="assets/app-iyyko.svg?v=ae25924f" width="24%" alt="iyyko"/></a>
-<a id="ourhour" href="#ourhour"><img src="assets/app-ourhour.svg?v=9c3b1382" width="24%" alt="Ourhour"/></a>
+<a href="https://goldenhour-timezones.vercel.app"><img src="assets/app-ourhour.svg?v=9c3b1382" width="24%" alt="Ourhour"/></a>
 <br/>
-<a href="https://apps.apple.com/app/isleday/id6816646663"><img src="assets/chip-isleday-ios.svg?v=288937e9" width="24%" alt="Isleday ios"/></a>
+<a href="https://isleday.app"><img src="assets/chip-isleday-site.svg?v=742df43d" width="12%" alt="Isleday site"/></a><a href="https://apps.apple.com/app/isleday/id6816646663"><img src="assets/chip-isleday-ios.svg?v=89be2ea4" width="12%" alt="Isleday ios"/></a>
 <a href="https://apps.apple.com/kr/app/tuttiday/id6818943301"><img src="assets/chip-tuttiday-ios.svg?v=1ae0e6e9" width="8%" alt="tuttiday ios"/></a><a href="https://play.google.com/store/apps/details?id=com.tuttiday.app"><img src="assets/chip-tuttiday-android.svg?v=dd8c4bba" width="8%" alt="tuttiday android"/></a><a href="https://tuttiday.com"><img src="assets/chip-tuttiday-web.svg?v=3af11560" width="8%" alt="tuttiday web"/></a>
 <a href="https://www.iyyko.com"><img src="assets/chip-iyyko-web.svg?v=d5b81845" width="24%" alt="iyyko web"/></a>
-<a id="ourhour-soon" href="#ourhour-soon"><img src="assets/chip-ourhour-soon.svg?v=a296cc9a" width="24%" alt="Ourhour coming soon"/></a>
+<a href="https://goldenhour-timezones.vercel.app"><img src="assets/chip-ourhour-site.svg?v=742df43d" width="12%" alt="Ourhour site"/></a><a href="https://testflight.apple.com/join/1Yh1QZCH"><img src="assets/chip-ourhour-beta.svg?v=4dd2db63" width="12%" alt="Ourhour ios beta"/></a>
 </p>
 
-<a id="island" href="#island"><img src="assets/island.svg?v=c13ec45b" width="100%" alt="My island"/></a>
+<a id="island" href="#island"><img src="assets/island.svg?v=fc01ec17" width="100%" alt="My island"/></a>
 
-<a id="pet" href="#pet"><img src="assets/pet.svg?v=f8d800ba" width="100%" alt="iyyko the pet, fed by my commits and by you"/></a>
+<a id="pet" href="#pet"><img src="assets/pet.svg?v=03eabae0" width="100%" alt="iyyko the pet, fed by my commits and by you"/></a>
 <p align="center">
 <a href="https://github.com/gonami-gennnmja/gonami-gennnmja/issues/new?title=pet%3A%20feed%20%F0%9F%90%9F&body=Just%20press%20**Create**%20%E2%80%94%20a%20bot%20does%20the%20rest%20and%20closes%20this%20issue.%20%F0%9F%90%B1"><img src="assets/btn-feed.svg?v=7d36c4ff" width="190" alt="Feed iyyko"/></a>
 <a href="https://github.com/gonami-gennnmja/gonami-gennnmja/issues/new?title=pet%3A%20play%20%F0%9F%A7%B6&body=Just%20press%20**Create**%20%E2%80%94%20a%20bot%20does%20the%20rest%20and%20closes%20this%20issue.%20%F0%9F%90%B1"><img src="assets/btn-play.svg?v=5192d851" width="190" alt="Play with iyyko"/></a>
@@ -35,7 +35,7 @@
 
 <a href="https://www.iyyko.com/play"><img src="assets/arcade.svg?v=37891207" width="100%" alt="Arcade: play games on iyyko.com"/></a>
 
-<a id="trophies" href="#trophies"><img src="assets/trophies.svg?v=b14697fc" width="100%" alt="Trophies"/></a>
+<a id="trophies" href="#trophies"><img src="assets/trophies.svg?v=cea9ac3b" width="100%" alt="Trophies"/></a>
 
 <a id="snake" href="#snake"><img src="assets/snake.svg?v=299a2183" width="100%" alt="A snake eating my contribution graph"/></a>
 

@@ -21,15 +21,16 @@ const localNow = () =>
   : new Date(Date.now() + OFFSET * 3600e3);
 const centerText = (s, y, u, color, w = W) => text(s, Math.round((w - textWidth(s) * u) / 2 / u), y, u, color).svg;
 
+const SITE = "https://gonami-gennnmja.github.io";
 const LINKEDIN = "https://www.linkedin.com/in/gain-nam-557a61430/";
 const APPS = [
-  { id: "isleday", name: "Isleday", desc: "Small habits grow a pixel island", chips: [["IOS", "https://apps.apple.com/app/isleday/id6816646663"]] },
+  { id: "isleday", name: "Isleday", desc: "Small habits grow a pixel island", chips: [["SITE", "https://isleday.app"], ["IOS", "https://apps.apple.com/app/isleday/id6816646663"]] },
   { id: "tuttiday", name: "tuttiday", desc: "Band rehearsals, set in one vote", chips: [["IOS", "https://apps.apple.com/kr/app/tuttiday/id6818943301"], ["ANDROID", "https://play.google.com/store/apps/details?id=com.tuttiday.app"], ["WEB", "https://tuttiday.com"]] },
   { id: "iyyko", name: "iyyko", desc: "One-minute games and tests", chips: [["WEB", "https://www.iyyko.com"]] },
-  { id: "ourhour", name: "Ourhour", desc: "Your shared hours, across time zones", chips: [["SOON", null]] },
+  { id: "ourhour", name: "Ourhour", desc: "Your shared hours, across time zones", chips: [["SITE", "https://goldenhour-timezones.vercel.app"], ["BETA", "https://testflight.apple.com/join/1Yh1QZCH"]] },
 ];
 // the card itself opens the website (or the only link); each platform chip under it is its own picture and link
-APPS.forEach((a) => (a.url = (a.chips.find(([l]) => l === "WEB") ?? a.chips[0])[1]));
+APPS.forEach((a) => (a.url = (a.chips.find(([l]) => l === "SITE" || l === "WEB") ?? a.chips[0])[1]));
 
 // ---------- data ----------
 async function calendar() {
@@ -126,7 +127,7 @@ function appCard(a) {
 // one platform chip; n chips share the card's 190px width, so they line up under it at the same scale
 function chip(label, n) {
   const w = 190 / n, u = 2, rw = w - 6;
-  let b = `<rect x="2" y="2" width="${rw}" height="28" fill="${label === "SOON" ? C.pink : "#000"}"/>`;
+  let b = `<rect x="2" y="2" width="${rw}" height="28" fill="${label === "SOON" || label === "BETA" ? C.pink : "#000"}"/>`;
   b += text(label, (2 + (rw - textWidth(label) * u) / 2) / u, 9 / u, u, "#fff").svg;
   return svgDoc(w, 36, b, label);
 }
@@ -346,6 +347,7 @@ const files = {
   "btn-feed.svg": svgDoc(190, 56, macButton(190, 56, "FEED", true), "Feed iyyko"),
   "btn-play.svg": svgDoc(190, 56, macButton(190, 56, "PLAY"), "Play with iyyko"),
   "btn-pat.svg": svgDoc(190, 56, macButton(190, 56, "PET"), "Pet iyyko"),
+  "btn-website.svg": svgDoc(190, 56, macButton(190, 56, "WEBSITE", true), "Website"),
   "btn-linkedin.svg": svgDoc(190, 56, macButton(190, 56, "LINKEDIN"), "LinkedIn"),
   "arcade.svg": arcade(),
   "trophies.svg": trophies(s),
@@ -377,13 +379,13 @@ for (const [f, md] of Object.entries(game.pages)) writeFileSync(`game/${f}`, md)
 
 const readme = `${still("hi", "header.svg", "Press start: apps for the little moments of your day")}
 ${still("about", "idcard.svg", "ID card")}
-<p align="center"><a href="${LINKEDIN}">${img("btn-linkedin.svg", "LinkedIn", "190")}</a></p>
+<p align="center"><a href="${SITE}">${img("btn-website.svg", "Website", "190")}</a> <a href="${LINKEDIN}">${img("btn-linkedin.svg", "LinkedIn", "190")}</a></p>
 
 <p align="center">
 ${APPS.map((a) => (a.url ? `<a href="${a.url}">${img(`app-${a.id}.svg`, a.name, "24%")}</a>` : still(a.id, `app-${a.id}.svg`, a.name, "24%"))).join("\n")}
 <br/>
 ${APPS.map((a) => a.chips.map(([label, url]) => {
-  const f = `chip-${a.id}-${label.toLowerCase()}.svg`, w = `${24 / a.chips.length}%`, alt = `${a.name} ${label === "SOON" ? "coming soon" : label.toLowerCase()}`;
+  const f = `chip-${a.id}-${label.toLowerCase()}.svg`, w = `${24 / a.chips.length}%`, alt = `${a.name} ${label === "BETA" ? "ios beta" : label === "SOON" ? "coming soon" : label.toLowerCase()}`;
   return url ? `<a href="${url}">${img(f, alt, w)}</a>` : still(`${a.id}-soon`, f, alt, w);
 }).join("")).join("\n")}
 </p>
