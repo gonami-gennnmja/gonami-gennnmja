@@ -1,5 +1,5 @@
 <a id="hi" href="#hi"><img src="assets/header.svg?v=9ea46f25" width="100%" alt="Press start: apps for the little moments of your day"/></a>
-<a id="about" href="#about"><img src="assets/idcard.svg?v=336c0203" width="100%" alt="ID card"/></a>
+<a id="about" href="#about"><img src="assets/idcard.svg?v=abd07e95" width="100%" alt="ID card"/></a>
 <p align="center"><a href="https://gonami-gennnmja.github.io"><img src="assets/btn-website.svg?v=d2778e65" width="190" alt="Website"/></a> <a href="https://www.linkedin.com/in/gain-nam-557a61430/"><img src="assets/btn-linkedin.svg?v=94423ad5" width="190" alt="LinkedIn"/></a></p>
 
 <p align="center">
@@ -14,16 +14,16 @@
 <a href="https://goldenhour-timezones.vercel.app"><img src="assets/chip-ourhour-site.svg?v=742df43d" width="12%" alt="Ourhour site"/></a><a href="https://testflight.apple.com/join/1Yh1QZCH"><img src="assets/chip-ourhour-beta.svg?v=4dd2db63" width="12%" alt="Ourhour ios beta"/></a>
 </p>
 
-<a id="island" href="#island"><img src="assets/island.svg?v=4887281c" width="100%" alt="My island"/></a>
+<a id="island" href="#island"><img src="assets/island.svg?v=f1ed7204" width="100%" alt="My island"/></a>
 
-<a id="pet" href="#pet"><img src="assets/pet.svg?v=d51d1cef" width="100%" alt="iyyko the pet, fed by my commits and by you"/></a>
+<a id="pet" href="#pet"><img src="assets/pet.svg?v=3f9dd27a" width="100%" alt="iyyko the pet, fed by my commits and by you"/></a>
 <p align="center">
 <a href="https://github.com/gonami-gennnmja/gonami-gennnmja/issues/new?title=pet%3A%20feed%20%F0%9F%90%9F&body=Just%20press%20**Create**%20%E2%80%94%20a%20bot%20does%20the%20rest%20and%20closes%20this%20issue.%20%F0%9F%90%B1"><img src="assets/btn-feed.svg?v=7d36c4ff" width="190" alt="Feed iyyko"/></a>
 <a href="https://github.com/gonami-gennnmja/gonami-gennnmja/issues/new?title=pet%3A%20play%20%F0%9F%A7%B6&body=Just%20press%20**Create**%20%E2%80%94%20a%20bot%20does%20the%20rest%20and%20closes%20this%20issue.%20%F0%9F%90%B1"><img src="assets/btn-play.svg?v=5192d851" width="190" alt="Play with iyyko"/></a>
 <a href="https://github.com/gonami-gennnmja/gonami-gennnmja/issues/new?title=pet%3A%20pat%20%E2%9C%8B&body=Just%20press%20**Create**%20%E2%80%94%20a%20bot%20does%20the%20rest%20and%20closes%20this%20issue.%20%F0%9F%90%B1"><img src="assets/btn-pat.svg?v=2135a1e5" width="190" alt="Pet iyyko"/></a>
 </p>
 
-<a id="fortune" href="#fortune"><img src="assets/fortune.svg?v=d5e255d9" width="100%" alt="Today's fortune from iyyko"/></a>
+<a id="fortune" href="#fortune"><img src="assets/fortune.svg?v=ca73fd11" width="100%" alt="Today's fortune from iyyko"/></a>
 
 <a id="ttt" href="#ttt"><img src="assets/ttt/start.svg?v=d4fb8e82" width="100%" alt="YOU ARE X. TAP A SQUARE!"/></a>
 <p align="center">
@@ -35,7 +35,7 @@
 
 <a href="https://www.iyyko.com/play"><img src="assets/arcade.svg?v=37891207" width="100%" alt="Arcade: play games on iyyko.com"/></a>
 
-<a id="trophies" href="#trophies"><img src="assets/trophies.svg?v=a8e627be" width="100%" alt="Trophies"/></a>
+<a id="trophies" href="#trophies"><img src="assets/trophies.svg?v=784e890f" width="100%" alt="Trophies"/></a>
 
 <a id="snake" href="#snake"><img src="assets/snake.svg?v=299a2183" width="100%" alt="A snake eating my contribution graph"/></a>
 
