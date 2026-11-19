@@ -1,25 +1,18 @@
 // Draws every picture on the profile and writes README.md.
-// Pictures that change (island, pet, garden, tic-tac-toe, trophies) come from the contribution
-// calendar and data/*.json; the README links each one with a content hash so GitHub shows the new one.
+// Pictures that change (island, pet, trophies) come from the contribution calendar; the README links each one with a content hash so GitHub shows the new one.
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { svgDoc } from "./pixel.mjs";
 import {
   C, W, frame, float, blink, twinkle, at, sprite, text, textWidth,
-  CATC, FACES, catSprite, TAIL, HEART, STAR, SPARK, FISH, YARN, HAND, FLOWER, CLOUD, ZZZ,
+  CATC, catSprite, HEART, STAR, SPARK, FISH, YARN, CLOUD, ZZZ,
 } from "./art.mjs";
-import { load, decay, COLS, ROWS, ITEMS, winner } from "./state.mjs";
 
 const USER = process.env.GH_USER || "gonami-gennnmja";
 const REPO = `${USER}/${USER}`;
 const OFFSET = +(process.env.TZ_OFFSET ?? 9); // hours from UTC for the sky and the cat's day
 const localNow = () => (process.env.FAKE_HOUR ? new Date(Date.UTC(2026, 0, 1, +process.env.FAKE_HOUR)) : new Date(Date.now() + OFFSET * 3600e3));
-const fit = (s, n) => (s.length > n ? s.slice(0, n - 2) + ".." : s);
-const ago = (iso) => {
-  const m = (Date.now() - Date.parse(iso)) / 60e3;
-  return m < 2 ? "JUST NOW" : m < 60 ? `${Math.round(m)}M AGO` : m < 1440 ? `${Math.round(m / 60)}H AGO` : `${Math.round(m / 1440)}D AGO`;
-};
 const centerText = (s, y, u, color, w = W) => text(s, Math.round((w - textWidth(s) * u) / 2 / u), y, u, color).svg;
 
 const APPS = [
@@ -49,7 +42,8 @@ function stats(days) {
   let i = days.length - 1, current = 0;
   if (days[i] && !days[i].n) i--;
   for (; i >= 0 && days[i].n; i--) current++;
-  return { total, longest, current, week: days.slice(-7), today: days.at(-1)?.n ?? 0 };
+  const active = days.filter((d) => d.n).length;
+  return { total, longest, current, active, week: days.slice(-7), today: days.at(-1)?.n ?? 0, yesterday: days.at(-2)?.n ?? 0 };
 }
 
 // ---------- about me: a little code window that types itself ----------
@@ -137,10 +131,17 @@ function island(s) {
   return svgDoc(W, H, frame(H, "MY ISLAND") + `<svg x="40" y="40" width="${GW * u}" height="${GH * u}">${b}</svg>`, "A pixel island where each of this week's days is a plant that grows with the day's commits");
 }
 
-// ---------- iyyko, the pet ----------
-function pet(saved) {
-  const p = decay(structuredClone(saved)); // how hungry iyyko is by now, without saving it
-  const H = 330, now = localNow(), hour = now.getUTCHours();
+// ---------- iyyko, the pet: every commit feeds it ----------
+const clamp = (v) => Math.max(0, Math.min(100, Math.round(v)));
+function petStats(s, hour) {
+  // food is today's commits; without any, iyyko gets hungrier as the day goes on
+  const hunger = s.today ? 55 + s.today * 9 : (s.yesterday ? 70 : 45) - hour * 2;
+  const fun = (s.week.filter((d) => d.n).length / 7) * 100; // busy days this week
+  const love = 25 + s.current * 12; // the streak
+  return { hunger: clamp(hunger), fun: clamp(fun), love: clamp(love) };
+}
+function pet(s) {
+  const H = 330, hour = localNow().getUTCHours(), p = petStats(s, hour);
   let b = frame(H, "IYYKO PET");
   // the egg-shaped toy
   const ex = 150, ey = 178, rx = 104, ry = 128, g = 6;
@@ -153,18 +154,17 @@ function pet(saved) {
   b += `<rect x="78" y="108" width="144" height="120" fill="${C.pink}"/><rect x="84" y="114" width="132" height="108" fill="#DDEFD0"/>`;
   [[110, 250], [150, 262], [190, 250]].forEach(([x, y]) => (b += `<rect x="${x - 9}" y="${y - 9}" width="18" height="18" fill="${C.gold}"/><rect x="${x - 9}" y="${y + 3}" width="18" height="6" fill="#F2C443"/>`));
   for (let i = 0; i < 6; i++) b += `<rect x="${102 + i * 18}" y="78" width="9" height="6" fill="${C.pink}"/>`;
-  // who is on the screen, and what they're doing
-  const last = p.log?.[0], recent = last && Date.now() - Date.parse(last.at) < 90 * 60e3;
+  // what iyyko is up to
   const low = Math.min(p.hunger, p.fun, p.love);
-  const asleep = !recent && hour < 7;
-  const face = asleep ? "closed" : recent ? "happy" : low < 15 ? "grumpy" : low < 40 ? "sad" : low >= 70 ? "happy" : "open";
-  const mood = asleep ? "SLEEPING" : recent ? { feed: "YUMMY!", play: "SO FUN!", pat: "PURR PURR" }[last.action] : low < 15 ? "GRUMPY" : low < 40 ? (p.hunger === low ? "HUNGRY" : p.fun === low ? "BORED" : "LONELY") : low >= 70 ? "HAPPY" : "OKAY";
+  const asleep = hour < 7;
+  const fed = !asleep && s.today > 0;
+  const face = asleep ? "closed" : fed && p.hunger >= 70 ? "happy" : low < 15 ? "grumpy" : low < 40 ? "sad" : low >= 70 ? "happy" : "open";
+  const mood = asleep ? "SLEEPING" : fed && p.hunger >= 90 ? "SO FULL!" : fed ? "YUMMY!" : low < 15 ? "GRUMPY" : low < 40 ? (p.hunger === low ? "HUNGRY" : p.fun === low ? "BORED" : "LONELY") : low >= 70 ? "HAPPY" : "OKAY";
   const lcd = { o: "#3E4A3D", w: "#DDEFD0", k: "#3E4A3D", h: "#9DB894", t: "#3E4A3D" };
   b += float(at(104, 130, sprite(catSprite(face), lcd, 0, 0, 5)), asleep ? 0 : 4, 1.2);
   if (asleep) [0, 1, 2].forEach((k) => (b += `<g opacity="0"><animate attributeName="opacity" values="0;1;0" dur="3s" begin="${k}s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="translate" values="0 0;8 -16" dur="3s" begin="${k}s" repeatCount="indefinite"/>${at(176, 124, sprite(ZZZ, { z: "#3E4A3D" }, 0, 0, 3))}</g>`));
-  else if (recent && last.action === "feed") b += float(at(172, 190, sprite(FISH, { f: "#3E4A3D", k: "#DDEFD0" }, 0, 0, 3)), 3, 0.5);
-  else if (recent && last.action === "play") b += `<g><animateTransform attributeName="transform" type="translate" values="0 0;0 -18;0 0" dur="0.7s" repeatCount="indefinite"/>${at(178, 186, sprite(YARN, { y: "#3E4A3D" }, 0, 0, 3))}</g>`;
-  else if (recent && last.action === "pat") b += twinkle(at(170, 122, sprite(HEART, { p: "#3E4A3D" }, 0, 0, 3)), 1.2, 0) + twinkle(at(94, 126, sprite(HEART, { p: "#3E4A3D" }, 0, 0, 2)), 1.2, 0.6);
+  else if (fed) b += float(at(172, 190, sprite(FISH, { f: "#3E4A3D", k: "#DDEFD0" }, 0, 0, 3)), 3, 0.5);
+  else if (p.love >= 70) b += twinkle(at(170, 122, sprite(HEART, { p: "#3E4A3D" }, 0, 0, 3)), 1.2, 0) + twinkle(at(94, 126, sprite(HEART, { p: "#3E4A3D" }, 0, 0, 2)), 1.2, 0.6);
   // stats
   const tx = 300;
   b += text("IYYKO", tx / 6, 58 / 6, 6, C.ink).svg;
@@ -177,62 +177,9 @@ function pet(saved) {
     const on = Math.round(v / 5), color = v < 25 ? "#FF6F91" : v < 50 ? C.gold : C.mintD;
     for (let k = 0; k < 20; k++) b += `<rect x="${tx + 150 + k * 15}" y="${y}" width="12" height="18" fill="${k < on ? color : C.lilacL}"/>`;
   });
-  const lastLine = last ? fit(`LAST: ${last.login} ${{ feed: "FED", play: "PLAYED WITH", pat: "PETTED" }[last.action]} IYYKO ${ago(last.at)}`, 52) : "NOBODY HAS VISITED YET. BE THE FIRST!";
-  b += text(lastLine, tx / 2, 270 / 2, 2, C.soft).svg;
-  b += text(`CARED FOR ${p.count ?? 0} ${(p.count ?? 0) === 1 ? "TIME" : "TIMES"}`, tx / 2, 290 / 2, 2, C.soft).svg;
-  return svgDoc(W, H, b, `iyyko the pet cat is feeling ${mood.toLowerCase()} — hunger ${p.hunger}, fun ${p.fun}, love ${p.love}`);
-}
-
-// ---------- garden everyone plants together ----------
-const GARDEN = {
-  flower: { rows: FLOWER, c: { p: C.pink, y: C.yellow, g: C.grassD } },
-  tulip: { rows: ["r.r.r", "rrrrr", ".rrr.", "..g..", "g.g.g", ".ggg."], c: { r: "#FF6F91", g: C.grassD } },
-  sunflower: { rows: [".yyy.", "yybyy", ".yyy.", "..g..", ".ggg.", "..g.."], c: { y: C.gold, b: C.trunk, g: C.grassD } },
-  tree: { rows: [".GGG.", "GGrGG", "GGGGG", ".GGG.", "..t..", "..t.."], c: { G: C.grassD, r: C.pink, t: C.trunk } },
-  mushroom: { rows: [".rrr.", "rwrwr", "rrrrr", ".www.", ".www."], c: { r: "#FF6F91", w: C.white } },
-  house: { rows: ["..r..", ".rrr.", "rrrrr", "wwwww", "wdwbw", "wdwww"], c: { r: C.pink, w: "#FFF6E6", d: C.trunk, b: C.blue } },
-  rock: { rows: [".....", ".kkk.", "kkkkk", "kkkkk"], c: { k: "#B8B0C8" } },
-  heart: { rows: HEART, c: { p: C.pink } },
-};
-function garden(g) {
-  const cw = 80, ch = 56, x0 = 80, y0 = 76, H = y0 + ROWS * ch + 56;
-  let b = frame(H, "OUR GARDEN");
-  b += text("PLANT SOMETHING AND IT STAYS HERE", 250 / 3, 16 / 3, 3, C.soft).svg;
-  [...COLS].forEach((c, i) => (b += text(c, (x0 + i * cw + cw / 2 - 4) / 4, (y0 - 26) / 4, 4, C.soft).svg));
-  for (let r = 0; r < ROWS; r++) {
-    b += text(String(r + 1), (x0 - 30) / 4, (y0 + r * ch + ch / 2 - 10) / 4, 4, C.soft).svg;
-    for (let c = 0; c < COLS.length; c++) {
-      const x = x0 + c * cw, y = y0 + r * ch, cell = g.cells[COLS[c] + (r + 1)];
-      b += `<rect x="${x}" y="${y}" width="${cw}" height="${ch}" fill="${(r + c) % 2 ? "#BFE9B0" : "#B2E3A2"}"/>`;
-      if (cell) {
-        const s = GARDEN[cell.item], u = 6, w = s.rows[0].length * u, h = s.rows.length * u;
-        b += float(at(x + (cw - w) / 2, y + ch - h - 6, sprite(s.rows, s.c, 0, 0, u)), 3, 2 + ((r + c) % 3) * 0.4, (r * 8 + c) * 0.17);
-      } else b += `<rect x="${x + cw / 2 - 3}" y="${y + ch / 2 - 3}" width="6" height="6" fill="#A2D892"/>`;
-    }
-  }
-  const latest = Object.entries(g.cells).sort((a, z) => z[1].at.localeCompare(a[1].at))[0];
-  const people = new Set(Object.values(g.cells).map((c) => c.login)).size;
-  b += text(latest ? fit(`LATEST: ${latest[1].item.toUpperCase()} AT ${latest[0]} BY ${latest[1].login}`, 44) : "THE GARDEN IS EMPTY. PLANT THE FIRST THING!", 40 / 3, (H - 36) / 3, 3, C.ink).svg;
-  if (people) b += text(`${people} GARDENERS`, 610 / 3, (H - 36) / 3, 3, C.pink).svg;
-  return svgDoc(W, H, b, "A garden where visitors plant flowers, trees and houses");
-}
-
-// ---------- tic-tac-toe against iyyko ----------
-function tttBoard(t) {
-  const H = 150, w = winner(t.board);
-  let b = frame(H, "TIC-TAC-TOE VS IYYKO");
-  b += centerText(`HUMANS ${t.score.human}  :  ${t.score.iyyko} IYYKO`, 60 / 5, 5, C.ink);
-  const status = !w ? (t.board.some(Boolean) ? "YOUR MOVE! TAP A SQUARE BELOW" : "YOU ARE X. TAP A SQUARE TO START") : w.who === "X" ? "HUMANS WIN! TAP ANY SQUARE FOR A NEW GAME" : w.who === "O" ? "IYYKO WINS! TAP ANY SQUARE FOR A REMATCH" : "DRAW! TAP ANY SQUARE FOR A NEW GAME";
-  b += blink(centerText(status, 106 / 3, 3, C.pink), 1.6);
-  return svgDoc(W, H, b, `Tic-tac-toe against iyyko. Humans ${t.score.human}, iyyko ${t.score.iyyko}`);
-}
-function tttCell(t, i) {
-  const s = 120, w = winner(t.board), v = t.board[i], hot = w?.line.includes(i);
-  let b = `<rect width="${s}" height="${s}" fill="${C.bg}"/><rect x="4" y="4" width="${s - 8}" height="${s - 8}" fill="${hot ? "#FFF1B8" : C.white}" stroke="${C.frame}" stroke-width="8"/>`;
-  b += text(String(i + 1), 4, 4, 3, C.lilac).svg;
-  if (v === "X") b += float(at(30, 30, sprite(["x...x", ".x.x.", "..x..", ".x.x.", "x...x"], { x: C.pink }, 0, 0, 12)), 3, 1.5, i * 0.1);
-  else if (v === "O") b += float(at(30, 33, sprite(FACES.happy, CATC, 0, 0, 5)), 3, 1.5, i * 0.1);
-  return svgDoc(s, s, b, v === "X" ? `square ${i + 1}: X` : v === "O" ? `square ${i + 1}: iyyko` : `square ${i + 1}: empty`);
+  b += text(`TODAY: ${s.today} ${s.today === 1 ? "COMMIT" : "COMMITS"} = ${s.today} ${s.today === 1 ? "FISH" : "FISHES"}`, tx / 2, 270 / 2, 2, C.soft).svg;
+  b += text("EVERY COMMIT FEEDS IYYKO. STREAKS MAKE IT LOVE YOU.", tx / 2, 290 / 2, 2, C.soft).svg;
+  return svgDoc(W, H, b, `iyyko the pet cat is feeling ${mood.toLowerCase()}: hunger ${p.hunger}, fun ${p.fun}, love ${p.love}`);
 }
 
 // ---------- arcade ----------
@@ -263,10 +210,10 @@ function arcade() {
 
 // ---------- trophies ----------
 const CUP = [".yyyyyyy.", "yyWyyyyyy", "y.yWyyy.y", ".yyyyyyy.", "..yyyyy..", "...yyy...", "....y....", "..ddddd..", "..ddddd.."];
-function trophies(s, friends) {
+function trophies(s) {
   const items = [
     ["SHIPPED", "3 APPS", "#FFD86B", C.peach], ["COMMITS", `${s.total}`, C.pink, C.pinkL], ["STREAK", `${s.current} DAYS`, C.mintD, C.mint],
-    ["BEST", `${s.longest} DAYS`, "#B49CFF", C.lilac], ["FRIENDS", `${friends}`, C.blue, "#CFE6FF"],
+    ["BEST", `${s.longest} DAYS`, "#B49CFF", C.lilac], ["DAYS ON", `${s.active}`, C.blue, "#CFE6FF"],
   ];
   const H = 190, cw = 132, gap = 12, x0 = (W - (items.length * cw + (items.length - 1) * gap)) / 2;
   let b = frame(H, "TROPHIES");
@@ -280,75 +227,44 @@ function trophies(s, friends) {
   return svgDoc(W, H, b, "Trophies");
 }
 
-// ---------- buttons ----------
-function button(label, icon, colors, bg) {
-  const w = 190, h = 64;
-  let b = `<rect width="${w}" height="${h}" fill="${C.bg}"/><rect x="6" y="12" width="${w - 12}" height="${h - 18}" fill="${C.frameD}"/><rect x="6" y="6" width="${w - 12}" height="${h - 18}" fill="${bg}"/>`;
-  b += at(20, 14, sprite(icon, colors, 0, 0, 4));
-  b += text(label, 64 / 4, 18 / 4, 4, C.white).svg;
-  return svgDoc(w, h, b, label);
-}
-
 // ---------- write everything ----------
 const days = await calendar();
 const s = stats(days);
-const petState = load("pet"), gardenState = load("garden"), tttState = load("ttt"), friends = load("friends");
-mkdirSync("assets/ttt", { recursive: true });
 const files = {
   "terminal.svg": terminal(),
   "island.svg": island(s),
-  "pet.svg": pet(petState),
-  "garden.svg": garden(gardenState),
-  "ttt/board.svg": tttBoard(tttState),
+  "pet.svg": pet(s),
   "arcade.svg": arcade(),
-  "trophies.svg": trophies(s, friends.logins.length),
-  "btn-feed.svg": button("FEED", FISH, { f: C.white, k: C.blue }, C.blue),
-  "btn-play.svg": button("PLAY", YARN, { y: C.white }, C.mintD),
-  "btn-pat.svg": button("PET", HAND, { h: C.white }, C.pink),
-  "btn-plant.svg": button("PLANT", FLOWER, { p: C.white, y: C.gold, g: C.white }, C.grassD),
+  "trophies.svg": trophies(s),
 };
 APPS.forEach((a) => (files[`app-${a.id}.svg`] = appCard(a)));
-tttState.board.forEach((_, i) => (files[`ttt/${i + 1}.svg`] = tttCell(tttState, i)));
 const v = {};
 for (const [f, svg] of Object.entries(files)) {
   writeFileSync(`assets/${f}`, svg);
   v[f] = createHash("md5").update(svg).digest("hex").slice(0, 8);
 }
-const img = (f, alt, width = "100%") => `<img src="assets/${f}?v=${v[f]}" width="${width}" alt="${alt}"/>`;
-const issue = (title, body = "") => `https://github.com/${REPO}/issues/new?title=${encodeURIComponent(title)}${body ? `&body=${encodeURIComponent(body)}` : ""}`;
-const press = "Just press **Create** — a bot does the rest and closes this issue. 🐱";
+const img = (f, alt, width = "100%") => `<img src="assets/${f}${v[f] ? `?v=${v[f]}` : ""}" width="${width}" alt="${alt}"/>`;
+// GitHub turns a bare picture into a link to the image file; pointing it at its own spot keeps a click from going anywhere
+const still = (id, f, alt, width) => `<a id="${id}" href="#${id}">${img(f, alt, width)}</a>`;
 
-const readme = `<img src="assets/header.svg" width="100%" alt="Hi there! I make small apps you'll want to open every day"/>
-${img("terminal.svg", "About me")}
+const readme = `${still("hi", "header.svg", "Hi there! I make small apps you'll want to open every day")}
+${still("about", "terminal.svg", "About me")}
 
 <p align="center">
-${APPS.map((a) => (a.url ? `<a href="${a.url}">${img(`app-${a.id}.svg`, a.name, "24%")}</a>` : img(`app-${a.id}.svg`, a.name, "24%"))).join("\n")}
+${APPS.map((a) => (a.url ? `<a href="${a.url}">${img(`app-${a.id}.svg`, a.name, "24%")}</a>` : still(a.id, `app-${a.id}.svg`, a.name, "24%"))).join("\n")}
 </p>
 
-${img("island.svg", "My island")}
+${still("island", "island.svg", "My island")}
 
-${img("pet.svg", "iyyko the pet")}
-<p align="center">
-<a href="${issue("pet: feed 🐟", press)}">${img("btn-feed.svg", "Feed iyyko", "190")}</a>
-<a href="${issue("pet: play 🧶", press)}">${img("btn-play.svg", "Play with iyyko", "190")}</a>
-<a href="${issue("pet: pat ✋", press)}">${img("btn-pat.svg", "Pet iyyko", "190")}</a>
-</p>
-
-${img("garden.svg", "Our garden")}
-<p align="center"><a href="https://github.com/${REPO}/issues/new?template=plant.yml">${img("btn-plant.svg", "Plant something", "190")}</a></p>
-
-${img("ttt/board.svg", "Tic-tac-toe vs iyyko")}
-<p align="center">
-${[0, 3, 6].map((r) => [1, 2, 3].map((c) => `<a href="${issue(`ttt: ${r + c}`, press)}">${img(`ttt/${r + c}.svg`, `square ${r + c}`, "120")}</a>`).join("\n")).join("<br/>\n")}
-</p>
+${still("pet", "pet.svg", "iyyko the pet, fed by my commits")}
 
 <a href="https://www.iyyko.com/play">${img("arcade.svg", "Arcade: play games on iyyko.com")}</a>
 
-${img("trophies.svg", "Trophies")}
+${still("trophies", "trophies.svg", "Trophies")}
 
-<img src="assets/snake.svg" width="100%" alt="A snake eating my contribution graph"/>
+${still("snake", "snake.svg", "A snake eating my contribution graph")}
 
-<img src="assets/footer.svg" width="100%" alt="Thanks for stopping by!"/>
+${still("bye", "footer.svg", "Thanks for stopping by!")}
 `;
 writeFileSync("README.md", readme);
-console.log(`week ${s.week.map((d) => d.n).join(",")} · total ${s.total} · streak ${s.current}/${s.longest} · pet ${petState.hunger}/${petState.fun}/${petState.love} · garden ${Object.keys(gardenState.cells).length} · ttt ${tttState.score.human}:${tttState.score.iyyko}`);
+console.log(`week ${s.week.map((d) => d.n).join(",")} · today ${s.today} · total ${s.total} · streak ${s.current}/${s.longest} · pet ${JSON.stringify(petStats(s, localNow().getUTCHours()))}`);
