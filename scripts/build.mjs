@@ -1,6 +1,6 @@
 // Draws every picture on the profile and writes README.md.
 // Pictures that change (island, pet, trophies) come from the contribution calendar; the README links each one with a content hash so GitHub shows the new one.
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { svgDoc } from "./pixel.mjs";
@@ -291,10 +291,13 @@ for (const [f, svg] of Object.entries(files)) {
   writeFileSync(`assets/${f}`, svg);
   v[f] = createHash("md5").update(svg).digest("hex").slice(0, 8);
 }
-const img = (f, alt, width = "100%") => `<img src="assets/${f}${v[f] ? `?v=${v[f]}` : ""}" width="${width}" alt="${alt}"/>`;
+const img = (f, alt, width = "100%", up = "") => `<img src="${up}assets/${f}${v[f] ? `?v=${v[f]}` : ""}" width="${width}" alt="${alt}"/>`;
 // GitHub turns a bare picture into a link to the image file; pointing it at its own spot keeps a click from going anywhere
 const still = (id, f, alt, width) => `<a id="${id}" href="#${id}">${img(f, alt, width)}</a>`;
-const game = ttt.markup(img);
+const game = ttt.markup(img, USER);
+rmSync("game", { recursive: true, force: true });
+mkdirSync("game");
+for (const [f, md] of Object.entries(game.pages)) writeFileSync(`game/${f}`, md);
 
 const readme = `${still("hi", "header.svg", "Hi there! I make small apps you'll want to open every day")}
 ${still("about", "terminal.svg", "About me")}
@@ -318,8 +321,6 @@ ${still("trophies", "trophies.svg", "Trophies")}
 ${still("snake", "snake.svg", "A snake eating my contribution graph")}
 
 ${still("bye", "footer.svg", "Thanks for stopping by!")}
-
-<!-- every tic-tac-toe board below is a step of the game above; clicking a square jumps to the next one -->
-${game.later}`;
+`;
 writeFileSync("README.md", readme);
 console.log(`week ${s.week.map((d) => d.n).join(",")} · today ${s.today} · total ${s.total} · streak ${s.current}/${s.longest} · ttt boards ${game.count} · pet ${JSON.stringify(petStats(s, localNow().getUTCHours()))}`);

@@ -70,36 +70,39 @@ function button(label, bg) {
   b += text(label, Math.round((w - textWidth(label) * 4) / 2 / 4), 4, 4, C.white).svg;
   return svgDoc(w, h, b, label);
 }
-const blank = (h) => `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="${h}" viewBox="0 0 10 ${h}"><title> </title></svg>
-`;
-const gap = () => `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="1600" viewBox="0 0 10 1600"><title> </title></svg>\n`;
-
 export function pictures() {
-  const f = { "ttt/gap.svg": gap(), "ttt/pad.svg": blank(80), "ttt/again.svg": button("PLAY AGAIN", C.pink), "ttt/restart.svg": button("START OVER", C.lilac) };
+  const f = { "ttt/again.svg": button("PLAY AGAIN", C.pink), "ttt/restart.svg": button("START OVER", C.lilac), "ttt/home.svg": button("MY PROFILE", C.mintD) };
   for (const k of ["e", "x", "o", "xw", "ow"]) f[`ttt/${k}.svg`] = cell(k);
   for (const k of Object.keys(STATUS)) f[`ttt/${k}.svg`] = status(k);
   return f;
 }
 
-// README markup: the game at its usual spot, and every later board for the end of the page
-export function markup(img) {
+// The first board goes in the README. Every later board is its own little page in game/,
+// so a click opens the next board and the profile itself stays short.
+export function markup(img, user) {
   const all = boards(), ids = new Map([...all.keys()].map((k, i) => [k, i ? `t${i}` : "ttt"]));
-  const board = (key) => {
+  const page = (id) => `https://github.com/${user}/${user}/blob/main/game/${id}.md`;
+  const home = `https://github.com/${user}#ttt`;
+  const board = (key, inReadme) => {
     const { board: b, next } = all.get(key), w = winner(b), id = ids.get(key);
     const kind = key === "start" ? "start" : !w ? "turn" : w.who === "X" ? "win" : w.who === "O" ? "lose" : "draw";
+    const pic = (f, alt, width) => img(f, alt, width, inReadme ? "" : "../");
     const cells = b.map((v, i) => {
       const k = !v ? "e" : (v === "X" ? "x" : "o") + (w?.line.includes(i) ? "w" : "");
-      return `<a href="#${next[i] ? ids.get(next[i]) : id}">${img(`ttt/${k}.svg`, k === "e" ? `square ${i + 1}` : v, "90")}</a>`;
+      // a filled square links to its own spot, so clicking it does nothing
+      return `<a href="${next[i] ? page(ids.get(next[i])) : "#board"}">${pic(`ttt/${k}.svg`, k === "e" ? `square ${i + 1}` : v, "90")}</a>`;
     });
     const rows = [0, 3, 6].map((r) => cells.slice(r, r + 3).join("")).join("<br/>\n");
-    const btn = kind === "start" ? "" : `<br/>\n<a href="#ttt">${img(w ? "ttt/again.svg" : "ttt/restart.svg", w ? "Play again" : "Start over", "200")}</a>`;
-    // later boards start with a little blank space so GitHub's sticky header doesn't cover them after a jump
-    const top = kind === "start" ? `<a id="${id}" href="#${id}">${img(`ttt/${kind}.svg`, STATUS[kind][0])}</a>`
-      : `<a id="${id}" href="#${id}">${img("ttt/pad.svg", " ", "10")}</a><br/>
-<a href="#${id}">${img(`ttt/${kind}.svg`, STATUS[kind][0])}</a>`;
-    return `${top}\n<p align="center">\n${rows}${btn}\n</p>\n`;
+    const btns = inReadme ? "" : `<br/>
+<a href="${home}">${pic(w ? "ttt/again.svg" : "ttt/restart.svg", w ? "Play again" : "Start over", "200")}</a>
+<a href="https://github.com/${user}">${pic("ttt/home.svg", "Back to my profile", "200")}</a>`;
+    const head = inReadme ? `<a id="ttt" href="#ttt">${pic("ttt/start.svg", STATUS.start[0])}</a>` : `<a id="board" href="#board">${pic(`ttt/${kind}.svg`, STATUS[kind][0])}</a>`;
+    return `${head}
+<p align="center">
+${rows}${btns}
+</p>
+`;
   };
-  const gapImg = (id) => `<a href="#${id}">${img("ttt/gap.svg", " ", "10")}</a>\n`;
-  const later = [...all.keys()].slice(1).map((k) => gapImg(ids.get(k)) + "\n" + board(k)).join("\n");
-  return { start: board("start"), later: later + "\n" + gapImg("ttt"), count: all.size };
+  const pages = Object.fromEntries([...all.keys()].slice(1).map((k) => [`${ids.get(k)}.md`, board(k, false)]));
+  return { start: board("start", true), pages, count: all.size };
 }
