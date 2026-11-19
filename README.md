@@ -8,9 +8,9 @@
 <img src="assets/app-ourhour.svg?v=50bd618b" width="24%" alt="Ourhour"/>
 </p>
 
-<img src="assets/island.svg?v=e49c927e" width="100%" alt="My island"/>
+<img src="assets/island.svg?v=8f934adb" width="100%" alt="My island"/>
 
-<img src="assets/pet.svg?v=a92d1d3e" width="100%" alt="iyyko the pet"/>
+<img src="assets/pet.svg?v=9d4af992" width="100%" alt="iyyko the pet"/>
 <p align="center">
 <a href="https://github.com/gonami-gennnmja/gonami-gennnmja/issues/new?title=pet%3A%20feed%20%F0%9F%90%9F&body=Just%20press%20**Create**%20%E2%80%94%20a%20bot%20does%20the%20rest%20and%20closes%20this%20issue.%20%F0%9F%90%B1"><img src="assets/btn-feed.svg?v=3146cce9" width="190" alt="Feed iyyko"/></a>
 <a href="https://github.com/gonami-gennnmja/gonami-gennnmja/issues/new?title=pet%3A%20play%20%F0%9F%A7%B6&body=Just%20press%20**Create**%20%E2%80%94%20a%20bot%20does%20the%20rest%20and%20closes%20this%20issue.%20%F0%9F%90%B1"><img src="assets/btn-play.svg?v=4df38af8" width="190" alt="Play with iyyko"/></a>
@@ -35,7 +35,7 @@
 
 <a href="https://www.iyyko.com/play"><img src="assets/arcade.svg?v=49ea2776" width="100%" alt="Arcade: play games on iyyko.com"/></a>
 
-<img src="assets/trophies.svg?v=6d596444" width="100%" alt="Trophies"/>
+<img src="assets/trophies.svg?v=a46d2201" width="100%" alt="Trophies"/>
 
 <img src="assets/snake.svg" width="100%" alt="A snake eating my contribution graph"/>
 
