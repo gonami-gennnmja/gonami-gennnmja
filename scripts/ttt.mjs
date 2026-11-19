@@ -70,10 +70,12 @@ function button(label, bg) {
   b += text(label, Math.round((w - textWidth(label) * 4) / 2 / 4), 4, 4, C.white).svg;
   return svgDoc(w, h, b, label);
 }
+const blank = (h) => `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="${h}" viewBox="0 0 10 ${h}"><title> </title></svg>
+`;
 const gap = () => `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="1600" viewBox="0 0 10 1600"><title> </title></svg>\n`;
 
 export function pictures() {
-  const f = { "ttt/gap.svg": gap(), "ttt/again.svg": button("PLAY AGAIN", C.pink), "ttt/restart.svg": button("START OVER", C.lilac) };
+  const f = { "ttt/gap.svg": gap(), "ttt/pad.svg": blank(80), "ttt/again.svg": button("PLAY AGAIN", C.pink), "ttt/restart.svg": button("START OVER", C.lilac) };
   for (const k of ["e", "x", "o", "xw", "ow"]) f[`ttt/${k}.svg`] = cell(k);
   for (const k of Object.keys(STATUS)) f[`ttt/${k}.svg`] = status(k);
   return f;
@@ -91,7 +93,11 @@ export function markup(img) {
     });
     const rows = [0, 3, 6].map((r) => cells.slice(r, r + 3).join("")).join("<br/>\n");
     const btn = kind === "start" ? "" : `<br/>\n<a href="#ttt">${img(w ? "ttt/again.svg" : "ttt/restart.svg", w ? "Play again" : "Start over", "200")}</a>`;
-    return `<a id="${id}" href="#${id}">${img(`ttt/${kind}.svg`, STATUS[kind][0])}</a>\n<p align="center">\n${rows}${btn}\n</p>\n`;
+    // later boards start with a little blank space so GitHub's sticky header doesn't cover them after a jump
+    const top = kind === "start" ? `<a id="${id}" href="#${id}">${img(`ttt/${kind}.svg`, STATUS[kind][0])}</a>`
+      : `<a id="${id}" href="#${id}">${img("ttt/pad.svg", " ", "10")}</a><br/>
+<a href="#${id}">${img(`ttt/${kind}.svg`, STATUS[kind][0])}</a>`;
+    return `${top}\n<p align="center">\n${rows}${btn}\n</p>\n`;
   };
   const gapImg = (id) => `<a href="#${id}">${img("ttt/gap.svg", " ", "10")}</a>\n`;
   const later = [...all.keys()].slice(1).map((k) => gapImg(ids.get(k)) + "\n" + board(k)).join("\n");
