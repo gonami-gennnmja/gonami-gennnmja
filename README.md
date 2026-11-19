@@ -14,9 +14,9 @@
 <a href="https://goldenhour-timezones.vercel.app"><img src="assets/chip-ourhour-site.svg?v=742df43d" width="12%" alt="Ourhour site"/></a><a href="https://testflight.apple.com/join/1Yh1QZCH"><img src="assets/chip-ourhour-beta.svg?v=4dd2db63" width="12%" alt="Ourhour ios beta"/></a>
 </p>
 
-<a id="island" href="#island"><img src="assets/island.svg?v=f1ed7204" width="100%" alt="My island"/></a>
+<a id="island" href="#island"><img src="assets/island.svg?v=0441638a" width="100%" alt="My island"/></a>
 
-<a id="pet" href="#pet"><img src="assets/pet.svg?v=3f9dd27a" width="100%" alt="iyyko the pet, fed by my commits and by you"/></a>
+<a id="pet" href="#pet"><img src="assets/pet.svg?v=a795983c" width="100%" alt="iyyko the pet, fed by my commits and by you"/></a>
 <p align="center">
 <a href="https://github.com/gonami-gennnmja/gonami-gennnmja/issues/new?title=pet%3A%20feed%20%F0%9F%90%9F&body=Just%20press%20**Create**%20%E2%80%94%20a%20bot%20does%20the%20rest%20and%20closes%20this%20issue.%20%F0%9F%90%B1"><img src="assets/btn-feed.svg?v=7d36c4ff" width="190" alt="Feed iyyko"/></a>
 <a href="https://github.com/gonami-gennnmja/gonami-gennnmja/issues/new?title=pet%3A%20play%20%F0%9F%A7%B6&body=Just%20press%20**Create**%20%E2%80%94%20a%20bot%20does%20the%20rest%20and%20closes%20this%20issue.%20%F0%9F%90%B1"><img src="assets/btn-play.svg?v=5192d851" width="190" alt="Play with iyyko"/></a>
@@ -37,6 +37,6 @@
 
 <a id="trophies" href="#trophies"><img src="assets/trophies.svg?v=784e890f" width="100%" alt="Trophies"/></a>
 
-<a id="snake" href="#snake"><img src="assets/snake.svg?v=299a2183" width="100%" alt="A snake eating my contribution graph"/></a>
+<a id="snake" href="#snake"><img src="assets/snake.svg?v=7f9aa660" width="100%" alt="A snake eating my contribution graph"/></a>
 
 <a id="bye" href="#bye"><img src="assets/footer.svg?v=2a9357b6" width="100%" alt="Thanks for stopping by!"/></a>
