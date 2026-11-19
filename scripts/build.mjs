@@ -304,6 +304,10 @@ for (const [f, svg] of Object.entries(files)) {
   writeFileSync(`assets/${f}`, svg);
   v[f] = createHash("md5").update(svg).digest("hex").slice(0, 8);
 }
+// pictures made elsewhere (banner script, snake action) get a hash too, so GitHub never shows an old copy
+for (const f of ["header.svg", "footer.svg", "snake.svg"]) {
+  try { v[f] = createHash("md5").update(readFileSync(`assets/${f}`)).digest("hex").slice(0, 8); } catch {}
+}
 const img = (f, alt, width = "100%", up = "") => `<img src="${up}assets/${f}${v[f] ? `?v=${v[f]}` : ""}" width="${width}" alt="${alt}"/>`;
 // GitHub turns a bare picture into a link to the image file; pointing it at its own spot keeps a click from going anywhere
 const still = (id, f, alt, width) => `<a id="${id}" href="#${id}">${img(f, alt, width)}</a>`;
