@@ -8,11 +8,17 @@ import {
   C, W, frame, float, blink, twinkle, at, sprite, text, textWidth,
   CATC, catSprite, HEART, STAR, SPARK, FISH, YARN, CLOUD, ZZZ,
 } from "./art.mjs";
+import { fortune } from "./fortune.mjs";
+import * as ttt from "./ttt.mjs";
 
 const USER = process.env.GH_USER || "gonami-gennnmja";
 const REPO = `${USER}/${USER}`;
 const OFFSET = +(process.env.TZ_OFFSET ?? 9); // hours from UTC for the sky and the cat's day
-const localNow = () => (process.env.FAKE_HOUR ? new Date(Date.UTC(2026, 0, 1, +process.env.FAKE_HOUR)) : new Date(Date.now() + OFFSET * 3600e3));
+// local time as a Date whose UTC fields read as local; FAKE_NOW ("2026-12-25T21:00") or FAKE_HOUR are for trying things out
+const localNow = () =>
+  process.env.FAKE_NOW ? new Date(process.env.FAKE_NOW + "Z")
+  : process.env.FAKE_HOUR ? new Date(Date.UTC(2026, 0, 1, +process.env.FAKE_HOUR))
+  : new Date(Date.now() + OFFSET * 3600e3);
 const centerText = (s, y, u, color, w = W) => text(s, Math.round((w - textWidth(s) * u) / 2 / u), y, u, color).svg;
 
 const APPS = [
@@ -104,14 +110,43 @@ const PLANTS = [
 const plantFor = (n) => PLANTS[n === 0 ? 0 : n <= 4 ? 1 : n <= 14 ? 2 : n <= 29 ? 3 : 4];
 const SUN = ["..yyy..", ".yyyyy.", "yyyyyyy", "yyyyyyy", "yyyyyyy", ".yyyyy.", "..yyy.."];
 const MOON = ["..mmm..", ".mm....", "mm.....", "mm.....", "mm.....", ".mm....", "..mmm.."];
+// the island follows the real calendar: petals in spring, a boat in summer, leaves in autumn, snow in winter
+function seasonOf(d) {
+  const m = d.getUTCMonth() + 1, md = m * 100 + d.getUTCDate();
+  const season = m >= 3 && m <= 5 ? "SPRING" : m >= 6 && m <= 8 ? "SUMMER" : m >= 9 && m <= 11 ? "AUTUMN" : "WINTER";
+  const holiday = md === 101 ? "NEWYEAR" : md === 214 ? "VALENTINE" : md === 1031 ? "HALLOWEEN" : md === 1224 || md === 1225 ? "XMAS" : null;
+  return { season, holiday };
+}
+const SEASONS = {
+  SPRING: { grass: "#B9EBA4", grassD: "#86CF7E", fall: [C.pinkL, "#FFE3EC", C.pink], n: 16, size: 1, dur: 9 },
+  SUMMER: { grass: C.grass, grassD: C.grassD, fall: null },
+  AUTUMN: { grass: "#EAD27F", grassD: "#D9A55A", fall: ["#F2A65A", "#E57A5A", C.gold], n: 12, size: 2, dur: 8 },
+  WINTER: { grass: "#F4F8FF", grassD: "#D6E2F2", fall: [C.white, "#EAF4FF"], n: 24, size: 1, dur: 10 },
+};
+const HOLIDAYS = {
+  NEWYEAR: { line: "HAPPY NEW YEAR!", deco: [STAR, SPARK], colors: [C.pink, C.gold, C.mint, C.lilac] },
+  VALENTINE: { line: "HAPPY VALENTINE'S DAY", deco: [HEART], colors: [C.pink, "#FF6F91", C.pinkL] },
+  HALLOWEEN: { line: "HAPPY HALLOWEEN", deco: [["k.....k", "kk.k.kk", "kkkkkkk", ".k...k."]], colors: ["#3B2F3A", "#5B4B6B"] },
+  XMAS: { line: "MERRY CHRISTMAS!", deco: [STAR, SPARK], colors: [C.gold, "#FF6F91", C.mintD] },
+};
+const BOAT = ["....w....", "...ww....", "..www....", ".wwww....", "....m....", "ppppppppp", ".ppppppp."];
+function falling(cfg, GW, GH, u) {
+  let out = "";
+  for (let k = 0; k < cfg.n; k++) {
+    const x = (k * 37 + 11) % GW, sz = cfg.size + (k % 3 === 0 ? 1 : 0), dur = cfg.dur + (k % 4) * 1.5, color = cfg.fall[k % cfg.fall.length];
+    out += `<g><animateTransform attributeName="transform" type="translate" values="0 ${-4 * u};${3 * u} ${(GH * u) / 2};0 ${GH * u}" dur="${dur}s" begin="${(-k * dur) / cfg.n}s" repeatCount="indefinite"/><rect x="${x * u}" y="0" width="${sz * u}" height="${sz * u}" fill="${color}"/></g>`;
+  }
+  return out;
+}
 function island(s) {
-  const u = 6, GW = 120, GH = 50, hour = localNow().getUTCHours();
+  const u = 6, GW = 120, GH = 50, now = localNow(), hour = now.getUTCHours();
+  const { season, holiday } = seasonOf(now), look = SEASONS[holiday === "XMAS" ? "WINTER" : season];
   const night = hour < 6 || hour >= 20, dusk = hour >= 17 && hour < 20;
   const skyTop = night ? "#4B4680" : dusk ? "#F9C6D3" : C.sky, skyBot = night ? "#6E68A8" : dusk ? "#FFE0C2" : "#E6F5FF";
   let b = `<rect width="${GW * u}" height="${GH * u}" fill="${skyBot}"/><rect width="${GW * u}" height="${18 * u}" fill="${skyTop}"/>`;
   if (night) for (const [x, y, d] of [[10, 6, 0], [25, 12, 1.2], [44, 4, 0.6], [70, 9, 1.8], [86, 15, 0.3], [108, 5, 1.1]])
     b += twinkle(`<rect x="${x * u}" y="${y * u}" width="${u}" height="${u}" fill="#FFF6B0"/>`, 2.4, d);
-  b += night ? sprite(MOON, { m: "#FFF6B0" }, 104, 3, u) : sprite(SUN, { y: C.yellow }, 104, 3, u);
+  b += night ? sprite(MOON, { m: holiday === "HALLOWEEN" ? "#FFB55E" : "#FFF6B0" }, 104, 3, u) : sprite(SUN, { y: C.yellow }, 104, 3, u);
   if (!night) for (const [y, dur, d] of [[6, 46, -10], [13, 64, -40]])
     b += `<g><animateTransform attributeName="transform" type="translate" from="${-12 * u} 0" to="${(GW + 2) * u} 0" dur="${dur}s" begin="${d}s" repeatCount="indefinite"/>${sprite(CLOUD, { w: C.white }, 0, y, u)}</g>`;
   b += `<rect y="${38 * u}" width="${GW * u}" height="${12 * u}" fill="${C.sea}"/>`;
@@ -119,16 +154,26 @@ function island(s) {
   for (let k = 0; k < 14; k++) waves += `<rect x="${(k * 17 + (k % 3) * 5) * u}" y="${(40 + (k % 4) * 2) * u}" width="${3 * u}" height="${u}" fill="${C.seaL}"/>`;
   b += `<g><animateTransform attributeName="transform" type="translate" values="0 0;${3 * u} 0;0 0" dur="5s" repeatCount="indefinite"/>${waves}</g>`;
   const cx = 60, rows = [[29, 36], [30, 38], [31, 39], [32, 40], [33, 40], [34, 39], [35, 38], [36, 36], [37, 33], [38, 29], [39, 24], [40, 17]];
-  for (const [y, hw] of rows) b += `<rect x="${(cx - hw) * u}" y="${y * u}" width="${hw * 2 * u}" height="${u}" fill="${y <= 30 ? C.grass : y === 31 ? C.grassD : y >= 38 ? C.sandD : C.sand}"/>`;
+  if (season === "SUMMER") b += `<g><animateTransform attributeName="transform" type="translate" from="${-10 * u} 0" to="${(GW + 2) * u} 0" dur="40s" begin="-12s" repeatCount="indefinite"/>${sprite(BOAT, { w: C.white, m: C.trunk, p: C.pink }, 0, 39, u)}</g>`;
+  for (const [y, hw] of rows) b += `<rect x="${(cx - hw) * u}" y="${y * u}" width="${hw * 2 * u}" height="${u}" fill="${y <= 30 ? look.grass : y === 31 ? look.grassD : y >= 38 ? C.sandD : C.sand}"/>`;
   const WD = "SMTWTFS";
   s.week.forEach((d, i) => {
     const x = cx - 30 + i * 10, p = plantFor(d.n), w = p.rows[0].length, h = p.rows.length;
     b += `<g><animateTransform attributeName="transform" type="translate" values="0 0;0 ${-u} 0;0 0" keyTimes="0;0.5;1" calcMode="discrete" dur="1.6s" begin="${i * 0.23}s" repeatCount="indefinite"/>${sprite(p.rows, p.c, x - Math.floor(w / 2), 29 - h, u)}</g>`;
     b += text(WD[new Date(d.date + "T00:00:00Z").getUTCDay()], x - 1, 33, u, i === 6 ? C.pink : C.sandD).svg;
   });
-  b += text(`THIS WEEK: ${s.week.reduce((t, d) => t + d.n, 0)} COMMITS`, 4, 4, 3, night ? "#D9D4FF" : C.soft).svg;
+  if (look.fall) b += falling(look, GW, GH, u);
+  const label = night ? "#D9D4FF" : C.soft;
+  b += text(`THIS WEEK: ${s.week.reduce((t, d) => t + d.n, 0)} COMMITS`, 4, 4, 3, label).svg;
+  b += text(season, 196 - textWidth(season), 4, 3, label).svg;
+  if (holiday) {
+    const h = HOLIDAYS[holiday];
+    [[14, 9], [38, 13], [84, 8], [96, 14], [24, 15]].forEach(([x, y], k) =>
+      (b += float(at(x * u, y * u, sprite(h.deco[k % h.deco.length], { p: h.colors[k % h.colors.length], y: h.colors[k % h.colors.length], k: h.colors[k % h.colors.length] }, 0, 0, u / 2)), 6, 1.6 + (k % 3) * 0.4, k * 0.3)));
+    b += blink(text(h.line, Math.round((GW * u - textWidth(h.line) * 4) / 2 / 4), 14, 4, night ? C.white : C.pink).svg, 1.4);
+  }
   const H = 356;
-  return svgDoc(W, H, frame(H, "MY ISLAND") + `<svg x="40" y="40" width="${GW * u}" height="${GH * u}">${b}</svg>`, "A pixel island where each of this week's days is a plant that grows with the day's commits");
+  return svgDoc(W, H, frame(H, "MY ISLAND") + `<svg x="40" y="40" width="${GW * u}" height="${GH * u}">${b}</svg>`, `A pixel island in ${season.toLowerCase()} where each of this week's days is a plant that grows with the day's commits`);
 }
 
 // ---------- iyyko, the pet: every commit feeds it ----------
@@ -236,7 +281,10 @@ const files = {
   "pet.svg": pet(s),
   "arcade.svg": arcade(),
   "trophies.svg": trophies(s),
+  "fortune.svg": fortune(localNow()),
+  ...ttt.pictures(),
 };
+mkdirSync("assets/ttt", { recursive: true });
 APPS.forEach((a) => (files[`app-${a.id}.svg`] = appCard(a)));
 const v = {};
 for (const [f, svg] of Object.entries(files)) {
@@ -246,6 +294,7 @@ for (const [f, svg] of Object.entries(files)) {
 const img = (f, alt, width = "100%") => `<img src="assets/${f}${v[f] ? `?v=${v[f]}` : ""}" width="${width}" alt="${alt}"/>`;
 // GitHub turns a bare picture into a link to the image file; pointing it at its own spot keeps a click from going anywhere
 const still = (id, f, alt, width) => `<a id="${id}" href="#${id}">${img(f, alt, width)}</a>`;
+const game = ttt.markup(img);
 
 const readme = `${still("hi", "header.svg", "Hi there! I make small apps you'll want to open every day")}
 ${still("about", "terminal.svg", "About me")}
@@ -258,6 +307,10 @@ ${still("island", "island.svg", "My island")}
 
 ${still("pet", "pet.svg", "iyyko the pet, fed by my commits")}
 
+${still("fortune", "fortune.svg", "Today's fortune from iyyko")}
+
+${game.start}
+
 <a href="https://www.iyyko.com/play">${img("arcade.svg", "Arcade: play games on iyyko.com")}</a>
 
 ${still("trophies", "trophies.svg", "Trophies")}
@@ -265,6 +318,8 @@ ${still("trophies", "trophies.svg", "Trophies")}
 ${still("snake", "snake.svg", "A snake eating my contribution graph")}
 
 ${still("bye", "footer.svg", "Thanks for stopping by!")}
-`;
+
+<!-- every tic-tac-toe board below is a step of the game above; clicking a square jumps to the next one -->
+${game.later}`;
 writeFileSync("README.md", readme);
-console.log(`week ${s.week.map((d) => d.n).join(",")} · today ${s.today} · total ${s.total} · streak ${s.current}/${s.longest} · pet ${JSON.stringify(petStats(s, localNow().getUTCHours()))}`);
+console.log(`week ${s.week.map((d) => d.n).join(",")} · today ${s.today} · total ${s.total} · streak ${s.current}/${s.longest} · ttt boards ${game.count} · pet ${JSON.stringify(petStats(s, localNow().getUTCHours()))}`);
