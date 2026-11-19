@@ -23,11 +23,13 @@ const centerText = (s, y, u, color, w = W) => text(s, Math.round((w - textWidth(
 
 const LINKEDIN = "https://www.linkedin.com/in/gain-nam-557a61430/";
 const APPS = [
-  { id: "isleday", name: "Isleday", desc: "Small habits grow a pixel island", url: "https://apps.apple.com/app/isleday/id6816646663", chips: ["IOS"] },
-  { id: "tuttiday", name: "tuttiday", desc: "Band rehearsals, set in one vote", url: "https://tuttiday.com", chips: ["IOS", "ANDROID", "WEB"] },
-  { id: "iyyko", name: "iyyko", desc: "One-minute games and tests", url: "https://www.iyyko.com", chips: ["WEB"] },
-  { id: "ourhour", name: "Ourhour", desc: "Your shared hours, across time zones", url: null, chips: ["SOON"] },
+  { id: "isleday", name: "Isleday", desc: "Small habits grow a pixel island", chips: [["IOS", "https://apps.apple.com/app/isleday/id6816646663"]] },
+  { id: "tuttiday", name: "tuttiday", desc: "Band rehearsals, set in one vote", chips: [["IOS", "https://apps.apple.com/kr/app/tuttiday/id6818943301"], ["ANDROID", "https://play.google.com/store/apps/details?id=com.tuttiday.app"], ["WEB", "https://tuttiday.com"]] },
+  { id: "iyyko", name: "iyyko", desc: "One-minute games and tests", chips: [["WEB", "https://www.iyyko.com"]] },
+  { id: "ourhour", name: "Ourhour", desc: "Your shared hours, across time zones", chips: [["SOON", null]] },
 ];
+// the card itself opens the website (or the only link); each platform chip under it is its own picture and link
+APPS.forEach((a) => (a.url = (a.chips.find(([l]) => l === "WEB") ?? a.chips[0])[1]));
 
 // ---------- data ----------
 async function calendar() {
@@ -111,7 +113,7 @@ function idCard(s, repos) {
 
 // ---------- app cards: one small window per app ----------
 function appCard(a) {
-  const w = 190, h = 250, u = 2, ww = w - SHADOW;
+  const w = 190, h = 206, u = 2, ww = w - SHADOW;
   let b = DEFS + win(w, h, a.name.toUpperCase(), { tu: 3 });
   const png = readFileSync(`assets/${a.id}.png`).toString("base64");
   const ix = (ww - 96) / 2;
@@ -119,14 +121,14 @@ function appCard(a) {
   const words = a.desc.toUpperCase().split(" "), ls = [""];
   for (const wd of words) (ls.at(-1) + " " + wd).trim().length > 20 ? ls.push(wd) : (ls[ls.length - 1] = (ls.at(-1) + " " + wd).trim());
   ls.slice(0, 2).forEach((l, i) => (b += centerText(l, 168 / u + i * 8, u, C.ink, ww)));
-  const cw = a.chips.map((c) => textWidth(c) * u + 14), total = cw.reduce((s, x) => s + x, 0) + (a.chips.length - 1) * 6;
-  let x = (ww - total) / 2;
-  a.chips.forEach((c, i) => {
-    b += `<rect x="${x}" y="202" width="${cw[i]}" height="24" fill="${c === "SOON" ? C.pink : "#000"}"/>`;
-    b += text(c, (x + 7) / u, 209 / u, u, "#fff").svg;
-    x += cw[i] + 6;
-  });
   return svgDoc(w, h, b, `${a.name}: ${a.desc}`);
+}
+// one platform chip; n chips share the card's 190px width, so they line up under it at the same scale
+function chip(label, n) {
+  const w = 190 / n, u = 2, rw = w - 6;
+  let b = `<rect x="2" y="2" width="${rw}" height="28" fill="${label === "SOON" ? C.pink : "#000"}"/>`;
+  b += text(label, (2 + (rw - textWidth(label) * u) / 2) / u, 9 / u, u, "#fff").svg;
+  return svgDoc(w, 36, b, label);
 }
 
 // ---------- my island ----------
@@ -351,7 +353,10 @@ const files = {
   ...ttt.pictures(),
 };
 mkdirSync("assets/ttt", { recursive: true });
-APPS.forEach((a) => (files[`app-${a.id}.svg`] = appCard(a)));
+APPS.forEach((a) => {
+  files[`app-${a.id}.svg`] = appCard(a);
+  a.chips.forEach(([label]) => (files[`chip-${a.id}-${label.toLowerCase()}.svg`] = chip(label, a.chips.length)));
+});
 const v = {};
 for (const [f, svg] of Object.entries(files)) {
   writeFileSync(`assets/${f}`, svg);
@@ -376,6 +381,11 @@ ${still("about", "idcard.svg", "ID card")}
 
 <p align="center">
 ${APPS.map((a) => (a.url ? `<a href="${a.url}">${img(`app-${a.id}.svg`, a.name, "24%")}</a>` : still(a.id, `app-${a.id}.svg`, a.name, "24%"))).join("\n")}
+<br/>
+${APPS.map((a) => a.chips.map(([label, url]) => {
+  const f = `chip-${a.id}-${label.toLowerCase()}.svg`, w = `${24 / a.chips.length}%`, alt = `${a.name} ${label === "SOON" ? "coming soon" : label.toLowerCase()}`;
+  return url ? `<a href="${url}">${img(f, alt, w)}</a>` : still(`${a.id}-soon`, f, alt, w);
+}).join("")).join("\n")}
 </p>
 
 ${still("island", "island.svg", "My island")}
