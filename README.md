@@ -8,7 +8,7 @@
 <img src="assets/app-ourhour.svg?v=50bd618b" width="24%" alt="Ourhour"/>
 </p>
 
-<img src="assets/island.svg?v=9b3f2cae" width="100%" alt="My island"/>
+<img src="assets/island.svg?v=e49c927e" width="100%" alt="My island"/>
 
 <img src="assets/pet.svg?v=a92d1d3e" width="100%" alt="iyyko the pet"/>
 <p align="center">
@@ -35,7 +35,7 @@
 
 <a href="https://www.iyyko.com/play"><img src="assets/arcade.svg?v=49ea2776" width="100%" alt="Arcade: play games on iyyko.com"/></a>
 
-<img src="assets/trophies.svg?v=af6654de" width="100%" alt="Trophies"/>
+<img src="assets/trophies.svg?v=6d596444" width="100%" alt="Trophies"/>
 
 <img src="assets/snake.svg" width="100%" alt="A snake eating my contribution graph"/>
 
