@@ -1,5 +1,5 @@
-<a id="hi" href="#hi"><img src="assets/header.svg?v=76334ba8" width="100%" alt="Press start: apps for the little moments of your day"/></a>
-<a id="about" href="#about"><img src="assets/idcard.svg?v=da9c37bc" width="100%" alt="ID card"/></a>
+<a id="hi" href="#hi"><img src="assets/header.svg?v=9ea46f25" width="100%" alt="Press start: apps for the little moments of your day"/></a>
+<a id="about" href="#about"><img src="assets/idcard.svg?v=805daede" width="100%" alt="ID card"/></a>
 <p align="center"><a href="https://pressmeow.github.io"><img src="assets/btn-website.svg?v=d2778e65" width="190" alt="Website"/></a> <a href="https://www.linkedin.com/in/gain-nam-557a61430/"><img src="assets/btn-linkedin.svg?v=94423ad5" width="190" alt="LinkedIn"/></a></p>
 
 <p align="center">
@@ -16,9 +16,9 @@
 
 <a href="https://pressmeow.github.io/blog/"><img src="assets/notes.svg?v=66d72fd3" width="100%" alt="Latest notes on my blog"/></a>
 
-<a id="island" href="#island"><img src="assets/island.svg?v=07f67087" width="100%" alt="My island"/></a>
+<a id="island" href="#island"><img src="assets/island.svg?v=eca2fd01" width="100%" alt="My island"/></a>
 
-<a id="pet" href="#pet"><img src="assets/pet.svg?v=e8b4a64d" width="100%" alt="iyyko the pet, fed by my commits and by you"/></a>
+<a id="pet" href="#pet"><img src="assets/pet.svg?v=b9be81b2" width="100%" alt="iyyko the pet, fed by my commits and by you"/></a>
 <p align="center">
 <a href="https://github.com/pressmeow/pressmeow/issues/new?title=pet%3A%20feed%20%F0%9F%90%9F&body=Just%20press%20**Create**%20%E2%80%94%20a%20bot%20does%20the%20rest%20and%20closes%20this%20issue.%20%F0%9F%90%B1"><img src="assets/btn-feed.svg?v=7d36c4ff" width="190" alt="Feed iyyko"/></a>
 <a href="https://github.com/pressmeow/pressmeow/issues/new?title=pet%3A%20play%20%F0%9F%A7%B6&body=Just%20press%20**Create**%20%E2%80%94%20a%20bot%20does%20the%20rest%20and%20closes%20this%20issue.%20%F0%9F%90%B1"><img src="assets/btn-play.svg?v=5192d851" width="190" alt="Play with iyyko"/></a>
@@ -37,7 +37,7 @@
 
 <a href="https://www.iyyko.com/play"><img src="assets/arcade.svg?v=37891207" width="100%" alt="Arcade: play games on iyyko.com"/></a>
 
-<a id="trophies" href="#trophies"><img src="assets/trophies.svg?v=4a8ae848" width="100%" alt="Trophies"/></a>
+<a id="trophies" href="#trophies"><img src="assets/trophies.svg?v=b29985d0" width="100%" alt="Trophies"/></a>
 
 <a id="snake" href="#snake"><img src="assets/snake.svg?v=7f9aa660" width="100%" alt="A snake eating my contribution graph"/></a>
 
