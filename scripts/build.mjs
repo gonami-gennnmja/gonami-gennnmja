@@ -72,8 +72,8 @@ function stats(days) {
 
 // ---------- ID card: who I am, a few numbers, the tools I use ----------
 const ME = {
-  role: "SOLO DEV · DESIGNER",
-  lines: ["SHIPPED: ISLEDAY, TUTTIDAY, IYYKO", "COOKING: OURHOUR"],
+  role: "DEV · DESIGNER",
+  lines: ["BY DAY: BUILDING PRODUCTS WITH A TEAM", "ON THE SIDE: ISLEDAY, TUTTIDAY, IYYKO", "COOKING: OURHOUR"],
   tools: ["MACOS", "WINDOWS", "XCODE", "INTELLIJ IDEA", "VS CODE", "CLAUDE CODE", "FIGMA", "DOCKER", "NOTION"],
   status: "NOW: SHIPPING OURHOUR",
 };
