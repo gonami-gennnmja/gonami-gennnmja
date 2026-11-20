@@ -72,6 +72,7 @@ function stats(days) {
 
 // ---------- ID card: who I am, a few numbers, the tools I use ----------
 const ME = {
+  name: "NAMI",
   role: "DEV · DESIGNER",
   lines: ["BY DAY: BUILDING PRODUCTS WITH A TEAM", "ON THE SIDE: ISLEDAY, TUTTIDAY, IYYKO", "COOKING: OURHOUR"],
   tools: ["MACOS", "WINDOWS", "XCODE", "INTELLIJ IDEA", "VS CODE", "CLAUDE CODE", "FIGMA", "DOCKER", "NOTION"],
@@ -93,7 +94,8 @@ function idCard(s, noteCount) {
   // photo: iyyko stands in for me
   b += `<rect x="24" y="52" width="132" height="132" fill="#000"/><rect x="27" y="55" width="126" height="126" fill="${C.light}"/>`;
   b += float(at(48, 66, sprite(catSprite("happy"), CATC, 0, 0, 7)), 3, 2);
-  b += text(USER.toUpperCase(), 176 / 5, 58 / 5, 5, "#000").svg;
+  b += text(ME.name, 176 / 5, 58 / 5, 5, "#000").svg;
+  b += text("@" + USER, (176 + textWidth(ME.name) * 5 + 16) / 2, 68 / 2, 2, C.soft).svg;
   b += text(ME.role, 176 / 3, 96 / 3, 3, C.pink).svg;
   ME.lines.forEach((l, i) => (b += text(l, 176 / 2, (128 + i * 18) / 2, 2, C.soft).svg));
   // numbers
@@ -114,7 +116,7 @@ function idCard(s, noteCount) {
   b += blink(`<rect x="${24 + textWidth(ME.status) * 2 + 6}" y="${sy + 12}" width="6" height="12" fill="#000"/>`, 1);
   const upd = "UPDATED EVERY HOUR";
   b += text(upd, (ww - 24 - textWidth(upd) * 2) / 2, (sy + 14) / 2, 2, C.soft).svg;
-  return svgDoc(W, H, b, `ID card: ${USER}, ${ME.role.toLowerCase()}. Streak ${s.current} days, ${s.total} commits, ${noteCount} notes on the blog. Tools: ${ME.tools.join(", ").toLowerCase()}`);
+  return svgDoc(W, H, b, `ID card: Nami (@${USER}), ${ME.role.toLowerCase()}. Streak ${s.current} days, ${s.total} commits, ${noteCount} notes on the blog. Tools: ${ME.tools.join(", ").toLowerCase()}`);
 }
 
 // ---------- app cards: one small window per app ----------
