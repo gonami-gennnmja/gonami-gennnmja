@@ -45,14 +45,19 @@ async function calendar() {
   if (!j.data) throw new Error(JSON.stringify(j));
   return j.data.user.contributionsCollection.contributionCalendar.weeks.flatMap((w) => w.contributionDays).map((d) => ({ date: d.date, n: d.contributionCount }));
 }
-async function publicRepos() {
-  const token = process.env.GITHUB_TOKEN || execSync("gh auth token").toString().trim();
-  const r = await fetch("https://api.github.com/graphql", {
-    method: "POST",
-    headers: { Authorization: `bearer ${token}`, "Content-Type": "application/json", "User-Agent": "profile-builder" },
-    body: JSON.stringify({ query: `query($l:String!){user(login:$l){repositories(privacy:PUBLIC,ownerAffiliations:OWNER){totalCount}}}`, variables: { l: USER } }),
-  });
-  return (await r.json()).data?.user.repositories.totalCount ?? 0;
+// newest posts from the website's feed; an empty list if the site can't be reached
+async function notes() {
+  try {
+    const xml = await (await fetch(`${SITE}/feed.xml`, { headers: { "User-Agent": "profile-builder" } })).text();
+    const unxml = (t) => t.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").replace(/<[^>]+>/g, "")
+      .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;|&#x27;/g, "'").replace(/&amp;/g, "&").trim();
+    return [...xml.matchAll(/<entry>([\s\S]*?)<\/entry>/g)].map(([, e]) => ({
+      title: unxml(e.match(/<title[^>]*>([\s\S]*?)<\/title>/)?.[1] ?? ""),
+      url: e.match(/<link href="([^"]+)"/)?.[1] ?? `${SITE}/blog/`,
+      date: (e.match(/<published>([^<]+)/)?.[1] ?? "").slice(0, 10),
+      summary: unxml(e.match(/<summary[^>]*>([\s\S]*?)<\/summary>/)?.[1] ?? ""),
+    }));
+  } catch { return []; }
 }
 function stats(days) {
   const total = days.reduce((s, d) => s + d.n, 0);
@@ -72,7 +77,7 @@ const ME = {
   tools: ["MACOS", "WINDOWS", "XCODE", "INTELLIJ IDEA", "VS CODE", "CLAUDE CODE", "FIGMA", "DOCKER", "NOTION"],
   status: "NOW: SHIPPING OURHOUR",
 };
-function idCard(s, repos) {
+function idCard(s, noteCount) {
   const ww = W - SHADOW;
   // tools, as chips that wrap; laid out first so the card can fit them
   let chips = "", cx = 24, cy = 222;
@@ -92,7 +97,7 @@ function idCard(s, repos) {
   b += text(ME.role, 176 / 3, 96 / 3, 3, C.pink).svg;
   ME.lines.forEach((l, i) => (b += text(l, 176 / 2, (128 + i * 18) / 2, 2, C.soft).svg));
   // numbers
-  const stats = [["STREAK", `${s.current} DAYS`], ["COMMITS", `${s.total}`], ["REPOS", `${repos}`], ["APPS", "3 LIVE"]];
+  const stats = [["STREAK", `${s.current} DAYS`], ["COMMITS", `${s.total}`], ["NOTES", `${noteCount >= 10 ? "10+" : noteCount}`], ["APPS", "3 LIVE"]];
   stats.forEach(([label, value], i) => {
     const x = 520 + (i % 2) * 134, y = 52 + Math.floor(i / 2) * 68;
     b += `<rect x="${x}" y="${y}" width="126" height="60" fill="#000"/><rect x="${x + 3}" y="${y + 3}" width="120" height="54" fill="${i === 0 ? C.pinkL : "#fff"}"/>`;
@@ -109,7 +114,7 @@ function idCard(s, repos) {
   b += blink(`<rect x="${24 + textWidth(ME.status) * 2 + 6}" y="${sy + 12}" width="6" height="12" fill="#000"/>`, 1);
   const upd = "UPDATED EVERY HOUR";
   b += text(upd, (ww - 24 - textWidth(upd) * 2) / 2, (sy + 14) / 2, 2, C.soft).svg;
-  return svgDoc(W, H, b, `ID card: ${USER}, ${ME.role.toLowerCase()}. Streak ${s.current} days, ${s.total} commits, ${repos} public repos. Tools: ${ME.tools.join(", ").toLowerCase()}`);
+  return svgDoc(W, H, b, `ID card: ${USER}, ${ME.role.toLowerCase()}. Streak ${s.current} days, ${s.total} commits, ${noteCount} notes on the blog. Tools: ${ME.tools.join(", ").toLowerCase()}`);
 }
 
 // ---------- app cards: one small window per app ----------
@@ -130,6 +135,41 @@ function chip(label, n) {
   let b = `<rect x="2" y="2" width="${rw}" height="28" fill="${label === "SOON" || label === "BETA" ? C.pink : "#000"}"/>`;
   b += text(label, (2 + (rw - textWidth(label) * u) / 2) / u, 9 / u, u, "#fff").svg;
   return svgDoc(w, 36, b, label);
+}
+
+// ---------- notes: the newest posts from the blog ----------
+// the pixel font only has ASCII, so other titles (Korean, emoji) fall back to a plain font
+const ascii = (t) => /^[\x20-\x7E·]*$/.test(t);
+const xmlEsc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const cut = (t, n) => (t.length > n ? t.slice(0, n - 2).trimEnd() + ".." : t);
+function line(t, x, y, u, color, max) {
+  if (ascii(t)) return text(cut(t, Math.floor(max / (4 * u))), x / u, y / u, u, color).svg;
+  const px = u * 6;
+  return `<text x="${x}" y="${y + u * 5}" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="${px}" font-weight="${u > 2 ? 700 : 400}" fill="${color}">${xmlEsc(cut(t, Math.floor(max / (px * 0.95))))}</text>`;
+}
+function notesCard(posts, today) {
+  const shown = posts.slice(0, 3), rowH = 66, top = 52, ww = W - SHADOW;
+  const H = top + Math.max(1, shown.length) * rowH + 56;
+  let b = frame(H, "NOTES.LOG");
+  if (!shown.length) b += centerText("NO NOTES YET. SOON!", (top + 22) / 3, 3, C.soft, ww);
+  shown.forEach((p, i) => {
+    const y = top + i * rowH;
+    b += text(p.date.replace(/-/g, "."), 28 / 2, (y + 8) / 2, 2, C.soft).svg;
+    const fresh = (Date.parse(today) - Date.parse(p.date)) / 864e5 <= 7;
+    if (fresh) b += `<rect x="28" y="${y + 26}" width="42" height="18" fill="${C.pink}"/>` + text("NEW", 34 / 2, (y + 30) / 2, 2, "#000").svg;
+    b += line(p.title, 160, y + 4, 3, "#000", ww - 160 - 28);
+    if (p.summary) b += line(p.summary, 160, y + 30, 2, C.soft, ww - 160 - 28);
+    if (i < shown.length - 1) b += `<rect x="24" y="${y + rowH - 10}" width="${ww - 48}" height="2" fill="url(#half)"/>`;
+  });
+  // status strip, like the ID card
+  const sy = H - SHADOW - 40, msg = "READ MORE ON MY WEBSITE";
+  b += `<rect x="3" y="${sy}" width="${ww - 6}" height="3" fill="#000"/><rect x="3" y="${sy + 3}" width="${ww - 6}" height="34" fill="${C.light}"/>`;
+  b += text(msg, 24 / 2, (sy + 14) / 2, 2, "#000").svg;
+  b += blink(`<rect x="${24 + textWidth(msg) * 2 + 6}" y="${sy + 12}" width="6" height="12" fill="#000"/>`, 1);
+  const n = `${posts.length >= 10 ? "10+" : posts.length} NOTES`;
+  b += text(n, (ww - 24 - textWidth(n) * 2) / 2, (sy + 14) / 2, 2, C.soft).svg;
+  const alt = shown.length ? `Latest notes: ${shown.map((p) => p.title).join(", ")}` : "No notes yet";
+  return svgDoc(W, H, b, xmlEsc(alt));
 }
 
 // ---------- my island ----------
@@ -338,10 +378,12 @@ function trophies(s) {
 // ---------- write everything ----------
 const days = await calendar();
 const s = stats(days);
-const repos = await publicRepos();
+// FAKE_NOTES (a JSON list) stands in for the feed when trying the layout locally
+const posts = process.env.FAKE_NOTES ? JSON.parse(process.env.FAKE_NOTES) : await notes();
 const petLog = existsSync("data/pet.json") ? JSON.parse(readFileSync("data/pet.json", "utf8")) : { log: [], count: 0 };
 const files = {
-  "idcard.svg": idCard(s, repos),
+  "idcard.svg": idCard(s, posts.length),
+  "notes.svg": notesCard(posts, localNow().toISOString().slice(0, 10)),
   "island.svg": island(s),
   "pet.svg": pet(s, petLog),
   "btn-feed.svg": svgDoc(190, 56, macButton(190, 56, "FEED", true), "Feed iyyko"),
@@ -389,6 +431,8 @@ ${APPS.map((a) => a.chips.map(([label, url]) => {
   return url ? `<a href="${url}">${img(f, alt, w)}</a>` : still(`${a.id}-soon`, f, alt, w);
 }).join("")).join("\n")}
 </p>
+
+<a href="${SITE}/blog/">${img("notes.svg", "Latest notes on my blog")}</a>
 
 ${still("island", "island.svg", "My island")}
 
