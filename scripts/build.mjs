@@ -11,7 +11,7 @@ import {
 import { fortune } from "./fortune.mjs";
 import * as ttt from "./ttt.mjs";
 
-const USER = process.env.GH_USER || "gonami-gennnmja";
+const USER = process.env.GH_USER || "pressmeow";
 const REPO = `${USER}/${USER}`;
 const OFFSET = +(process.env.TZ_OFFSET ?? 9); // hours from UTC for the sky and the cat's day
 // local time as a Date whose UTC fields read as local; FAKE_NOW ("2026-12-25T21:00") or FAKE_HOUR are for trying things out
@@ -21,7 +21,7 @@ const localNow = () =>
   : new Date(Date.now() + OFFSET * 3600e3);
 const centerText = (s, y, u, color, w = W) => text(s, Math.round((w - textWidth(s) * u) / 2 / u), y, u, color).svg;
 
-const SITE = "https://gonami-gennnmja.github.io";
+const SITE = "https://pressmeow.github.io";
 const LINKEDIN = "https://www.linkedin.com/in/gain-nam-557a61430/";
 const APPS = [
   { id: "isleday", name: "Isleday", desc: "Small habits grow a pixel island", chips: [["SITE", "https://isleday.app"], ["IOS", "https://apps.apple.com/app/isleday/id6816646663"]] },
